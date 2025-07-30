@@ -636,6 +636,38 @@
     </footer>
 
     <script>
+        // gif.jsの透過処理を改善するパッチ
+        if (typeof GIF !== 'undefined') {
+            // GIFライブラリの透過処理を強化
+            const originalAddFrame = GIF.prototype.addFrame;
+            GIF.prototype.addFrame = function(image, options) {
+                options = options || {};
+                
+                // 透過処理を強制的に有効にする
+                if (this.options.transparent !== null || options.transparent) {
+                    // Canvasの場合、透過ピクセルを検出して透過色を設定
+                    if (image.tagName === 'CANVAS') {
+                        const ctx = image.getContext('2d');
+                        const imageData = ctx.getImageData(0, 0, image.width, image.height);
+                        const data = imageData.data;
+                        
+                        // 透過色として使用する色を見つける（完全黒）
+                        this.setTransparent = function(color) {
+                            this.transparent = color;
+                            return this;
+                        };
+                        
+                        // 透過色を黒（0x000000）に設定
+                        if (typeof this.transparent === 'undefined') {
+                            this.transparent = 0x000000;
+                        }
+                    }
+                }
+                
+                return originalAddFrame.call(this, image, options);
+            };
+        }
+
         let currentImage = null;
         let animationCanvas = null;
         let animationContext = null;
@@ -1182,16 +1214,27 @@
             const scale = parseFloat(imageScale.value) / 100;
             
             try {
+                // カスタムGIF設定で透過を強制
                 const gif = new GIF({
                     workers: 2,
                     quality: qualityLevel.value === 'high' ? 1 : qualityLevel.value === 'medium' ? 10 : 20,
                     width: outputW,
                     height: outputH,
                     repeat: loopType.value === 'infinite' ? 0 : parseInt(loopType.value),
-                    dither: false,
-                    transparent: null,
-                    workerScript: 'gif.worker.js'
+                    dither: colors < 256 ? 'FloydSteinberg' : false,
+                    workerScript: 'gif.worker.js',
+                    debug: false,
+                    transparent: 0x000000, // 黒を透過色として指定
+                    background: null,      // 背景なし
+                    globalPalette: false   // フレームごとのパレット
                 });
+                
+                // 透過色を明示的に設定
+                gif.setTransparent = function(color) {
+                    this.transparent = color;
+                    return this;
+                };
+                gif.setTransparent(0x000000);
                 
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
@@ -1202,26 +1245,85 @@
                 const progressStep = 80 / frameCount;
                 
                 for (let i = 0; i < frameCount; i++) {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.save();
+                    // 透過処理用の特殊背景描画
+                    ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // 完全黒背景
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
+                    // 一時キャンバスでアルファ合成
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCanvas.width = outputW;
+                    tempCanvas.height = outputH;
+                    
+                    tempCtx.save();
                     const frameProgress = i / frameCount;
                     
-                    applyTransform(ctx, frameProgress, outputW, outputH, scale);
-                    ctx.drawImage(currentImage, 0, 0, outputW, outputH);
-                    ctx.restore();
+                    applyTransform(tempCtx, frameProgress, outputW, outputH, scale);
+                    tempCtx.drawImage(currentImage, 0, 0, outputW, outputH);
+                    tempCtx.restore();
                     
-                    gif.addFrame(canvas, {delay: Math.round(1000 / fps)});
+                    // アルファブレンディングで透過処理
+                    const imageData = tempCtx.getImageData(0, 0, outputW, outputH);
+                    const data = imageData.data;
+                    const outputData = ctx.createImageData(outputW, outputH);
+                    const outData = outputData.data;
+                    
+                    for (let j = 0; j < data.length; j += 4) {
+                        const alpha = data[j + 3] / 255;
+                        if (alpha < 0.1) {
+                            // ほぼ透明なピクセルは黒に（透過色）
+                            outData[j] = 0;     // R
+                            outData[j + 1] = 0; // G
+                            outData[j + 2] = 0; // B
+                            outData[j + 3] = 255; // A（完全不透明の黒）
+                        } else {
+                            // 半透明の場合は白背景と合成
+                            const invAlpha = 1 - alpha;
+                            outData[j] = Math.round(data[j] * alpha + 255 * invAlpha);     // R
+                            outData[j + 1] = Math.round(data[j + 1] * alpha + 255 * invAlpha); // G
+                            outData[j + 2] = Math.round(data[j + 2] * alpha + 255 * invAlpha); // B
+                            outData[j + 3] = 255; // A
+                        }
+                    }
+                    
+                    ctx.putImageData(outputData, 0, 0);
+                    
+                    // フレーム遅延を10ms単位に変換（GIF仕様）
+                    const frameDelay = Math.max(2, Math.round(1000 / fps / 10)); // 最小20ms
+                    
+                    gif.addFrame(canvas, {
+                        delay: frameDelay,
+                        copy: true,
+                        transparent: true // 透過を有効に
+                    });
                     
                     progress += progressStep;
                     progressFill.style.width = progress + '%';
                     
                     // UIの更新を待つ
-                    await new Promise(resolve => setTimeout(resolve, 1));
+                    await new Promise(resolve => setTimeout(resolve, 10));
                 }
                 
                 return new Promise((resolve, reject) => {
+                    let finished = false;
+                    
+                    // タイムアウト設定（30秒）
+                    const timeout = setTimeout(() => {
+                        if (!finished) {
+                            finished = true;
+                            reject(new Error('GIF生成がタイムアウトしました。画像サイズを小さくするか、フレーム数を減らしてください。'));
+                        }
+                    }, 30000);
+                    
                     gif.on('finished', function(blob) {
+                        if (finished) return;
+                        finished = true;
+                        clearTimeout(timeout);
+                        
+                        if (!blob) {
+                            reject(new Error('GIF生成に失敗しました。'));
+                            return;
+                        }
                         if (blob.size > 5 * 1024 * 1024) {
                             reject(new Error('生成されたファイルが5MBを超えています。色数を減らすか品質設定を下げてください。'));
                             return;
@@ -1231,10 +1333,29 @@
                     });
                     
                     gif.on('progress', function(p) {
-                        progressFill.style.width = (80 + p * 20) + '%';
+                        if (!finished) {
+                            progressFill.style.width = (80 + p * 20) + '%';
+                        }
                     });
                     
-                    gif.render();
+                    gif.on('abort', function() {
+                        if (!finished) {
+                            finished = true;
+                            clearTimeout(timeout);
+                            reject(new Error('GIF生成が中断されました。'));
+                        }
+                    });
+                    
+                    // レンダリング開始
+                    try {
+                        gif.render();
+                    } catch (error) {
+                        if (!finished) {
+                            finished = true;
+                            clearTimeout(timeout);
+                            reject(new Error('GIF描画エラー: ' + error.message));
+                        }
+                    }
                 });
                 
             } catch (error) {
