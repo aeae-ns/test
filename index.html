@@ -1214,19 +1214,20 @@
             const scale = parseFloat(imageScale.value) / 100;
             
             try {
-                // 高品質透過用のGIF設定
+                // 透過色を事前に決定（固定でマゼンタ使用）
+                const transparentRGB = {r: 255, g: 0, b: 255}; // マゼンタ
+                
                 const gif = new GIF({
                     workers: 2,
                     quality: Math.max(1, qualityLevel.value === 'high' ? 1 : qualityLevel.value === 'medium' ? 5 : 10),
                     width: outputW,
                     height: outputH,
                     repeat: loopType.value === 'infinite' ? 0 : parseInt(loopType.value),
-                    dither: false, // ディザリングを無効
+                    dither: false,
                     workerScript: 'gif.worker.js',
                     debug: false,
-                    transparent: null, // 後で設定
-                    background: null,
-                    globalPalette: false
+                    transparent: 0xFF00FF, // マゼンタを透過色として明示的に指定
+                    background: null
                 });
                 
                 const canvas = document.createElement('canvas');
@@ -1238,8 +1239,9 @@
                 const progressStep = 80 / frameCount;
                 
                 for (let i = 0; i < frameCount; i++) {
-                    // 完全透明な背景から開始
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // マゼンタ背景で塗りつぶし
+                    ctx.fillStyle = 'rgb(255, 0, 255)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
                     // 一時キャンバスでアニメーション描画
                     const tempCanvas = document.createElement('canvas');
@@ -1254,48 +1256,58 @@
                     tempCtx.drawImage(currentImage, 0, 0, outputW, outputH);
                     tempCtx.restore();
                     
-                    // 高精度透過処理
+                    // 透過処理
                     const imageData = tempCtx.getImageData(0, 0, outputW, outputH);
                     const data = imageData.data;
-                    
-                    // 透過色として使わない特殊色を探す
-                    const transparentColor = findSafeTransparentColor(data);
-                    
-                    // 背景を透過色で塗りつぶし
-                    ctx.fillStyle = `rgb(${transparentColor.r}, ${transparentColor.g}, ${transparentColor.b})`;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    // 高品質アルファ合成
                     const outputData = ctx.createImageData(outputW, outputH);
                     const outData = outputData.data;
+                    
+                    // マゼンタが元画像で使われているかチェック
+                    let magentaUsed = false;
+                    for (let j = 0; j < data.length; j += 4) {
+                        if (data[j + 3] > 10) { // 不透明なピクセルのみチェック
+                            if (data[j] === 255 && data[j + 1] === 0 && data[j + 2] === 255) {
+                                magentaUsed = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // マゼンタが使われている場合は代替色を使用
+                    let finalTransparentColor = transparentRGB;
+                    if (magentaUsed) {
+                        // 代替透過色（緑）
+                        finalTransparentColor = {r: 0, g: 255, b: 0};
+                        ctx.fillStyle = 'rgb(0, 255, 0)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
                     
                     for (let j = 0; j < data.length; j += 4) {
                         const alpha = data[j + 3] / 255;
                         
-                        if (alpha < 0.005) {
+                        if (alpha < 0.01) {
                             // 完全透明 → 透過色
-                            outData[j] = transparentColor.r;
-                            outData[j + 1] = transparentColor.g;
-                            outData[j + 2] = transparentColor.b;
+                            outData[j] = finalTransparentColor.r;
+                            outData[j + 1] = finalTransparentColor.g;
+                            outData[j + 2] = finalTransparentColor.b;
                             outData[j + 3] = 255;
-                        } else if (alpha < 0.95) {
-                            // 半透明 → プリマルチプライドアルファで合成
+                        } else if (alpha < 0.98) {
+                            // 半透明処理
                             const r = data[j];
                             const g = data[j + 1];
                             const b = data[j + 2];
                             
-                            // アルファプリマルチプライ処理
-                            if (alpha > 0.1) {
-                                // ある程度不透明な場合は色を保持
-                                outData[j] = Math.round(r / alpha);
-                                outData[j + 1] = Math.round(g / alpha);
-                                outData[j + 2] = Math.round(b / alpha);
+                            if (alpha > 0.3) {
+                                // 比較的不透明 → 元の色を維持
+                                outData[j] = r;
+                                outData[j + 1] = g;
+                                outData[j + 2] = b;
                                 outData[j + 3] = 255;
                             } else {
-                                // 非常に薄い場合は透過色に
-                                outData[j] = transparentColor.r;
-                                outData[j + 1] = transparentColor.g;
-                                outData[j + 2] = transparentColor.b;
+                                // 非常に薄い → 透過色に
+                                outData[j] = finalTransparentColor.r;
+                                outData[j + 1] = finalTransparentColor.g;
+                                outData[j + 2] = finalTransparentColor.b;
                                 outData[j + 3] = 255;
                             }
                         } else {
@@ -1307,19 +1319,17 @@
                         }
                     }
                     
-                    // エッジクリーンアップ
-                    if (qualityLevel.value === 'high') {
-                        cleanTransparencyEdges(outData, outputW, outputH, transparentColor);
-                    }
-                    
                     ctx.putImageData(outputData, 0, 0);
                     
                     const frameDelay = Math.max(2, Math.round(1000 / fps / 10));
                     
+                    // 透過色を正しく設定
+                    const transparentHex = magentaUsed ? 0x00FF00 : 0xFF00FF;
+                    
                     gif.addFrame(canvas, {
                         delay: frameDelay,
                         copy: true,
-                        transparent: rgbToHex(transparentColor.r, transparentColor.g, transparentColor.b)
+                        transparent: transparentHex
                     });
                     
                     progress += progressStep;
@@ -1382,110 +1392,6 @@
                 
             } catch (error) {
                 throw new Error('GIF生成中にエラーが発生しました: ' + error.message);
-            }
-        }
-
-        // 画像で使われていない安全な透過色を見つける
-        function findSafeTransparentColor(imageData) {
-            const colorMap = new Set();
-            
-            // 画像内の全色をチェック
-            for (let i = 0; i < imageData.length; i += 4) {
-                const alpha = imageData[i + 3];
-                if (alpha > 10) { // ある程度不透明なピクセルのみ
-                    const color = (imageData[i] << 16) | (imageData[i + 1] << 8) | imageData[i + 2];
-                    colorMap.add(color);
-                }
-            }
-            
-            // 使われていない色を探す
-            const candidates = [
-                {r: 0, g: 255, b: 0},     // 緑
-                {r: 255, g: 0, b: 255},   // マゼンタ
-                {r: 0, g: 255, b: 255},   // シアン
-                {r: 255, g: 255, b: 0},   // 黄色
-                {r: 1, g: 1, b: 1},       // ほぼ黒
-                {r: 254, g: 254, b: 254}, // ほぼ白
-                {r: 128, g: 0, b: 128},   // 紫
-                {r: 0, g: 128, b: 0}      // 暗い緑
-            ];
-            
-            for (const candidate of candidates) {
-                const colorValue = (candidate.r << 16) | (candidate.g << 8) | candidate.b;
-                if (!colorMap.has(colorValue)) {
-                    return candidate;
-                }
-            }
-            
-            // 全部使われている場合は緑を使用
-            return {r: 0, g: 255, b: 0};
-        }
-
-        // RGB値を16進数に変換
-        function rgbToHex(r, g, b) {
-            return (r << 16) | (g << 8) | b;
-        }
-
-        // 透過エッジのクリーンアップ
-        function cleanTransparencyEdges(data, width, height, transparentColor) {
-            const tempData = new Uint8ClampedArray(data);
-            
-            for (let y = 1; y < height - 1; y++) {
-                for (let x = 1; x < width - 1; x++) {
-                    const idx = (y * width + x) * 4;
-                    const r = tempData[idx];
-                    const g = tempData[idx + 1];
-                    const b = tempData[idx + 2];
-                    
-                    // 透過色かチェック
-                    if (r === transparentColor.r && g === transparentColor.g && b === transparentColor.b) {
-                        continue;
-                    }
-                    
-                    // 隣接ピクセルをチェック
-                    const neighbors = [
-                        [-1, -1], [-1, 0], [-1, 1],
-                        [0, -1],           [0, 1],
-                        [1, -1],  [1, 0],  [1, 1]
-                    ];
-                    
-                    let transparentNeighbors = 0;
-                    let totalR = 0, totalG = 0, totalB = 0, solidCount = 0;
-                    
-                    for (const [dx, dy] of neighbors) {
-                        const nx = x + dx;
-                        const ny = y + dy;
-                        const nIdx = (ny * width + nx) * 4;
-                        
-                        if (tempData[nIdx] === transparentColor.r && 
-                            tempData[nIdx + 1] === transparentColor.g && 
-                            tempData[nIdx + 2] === transparentColor.b) {
-                            transparentNeighbors++;
-                        } else {
-                            totalR += tempData[nIdx];
-                            totalG += tempData[nIdx + 1];
-                            totalB += tempData[nIdx + 2];
-                            solidCount++;
-                        }
-                    }
-                    
-                    // 透過色に囲まれたピクセルの処理
-                    if (transparentNeighbors >= 6 && solidCount > 0) {
-                        // 孤立ピクセルは削除
-                        data[idx] = transparentColor.r;
-                        data[idx + 1] = transparentColor.g;
-                        data[idx + 2] = transparentColor.b;
-                    } else if (transparentNeighbors >= 3 && solidCount > 0) {
-                        // エッジピクセルは平滑化
-                        const avgR = totalR / solidCount;
-                        const avgG = totalG / solidCount;
-                        const avgB = totalB / solidCount;
-                        
-                        data[idx] = Math.round((r * 0.7) + (avgR * 0.3));
-                        data[idx + 1] = Math.round((g * 0.7) + (avgG * 0.3));
-                        data[idx + 2] = Math.round((b * 0.7) + (avgB * 0.3));
-                    }
-                }
             }
         }
 
