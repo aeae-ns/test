@@ -229,28 +229,31 @@ function updatePreview() {
     animate();
 }
 
-// 生成ボタン: フレームキャプチャ（修正: 最低10フレーム、フレームハッシュで差分確認）
+// 生成ボタン: フレームキャプチャ (修正: ハッシュを位置考慮, CRC風)
 generateButton.addEventListener('click', () => {
     if (!uploadedImage) return alert('PNGをアップロードしてください');
     let totalFrames = Math.round(fps * animationSpeed);
-    totalFrames = Math.max(10, totalFrames); // 最低10フレームでテストしやすく
+    totalFrames = Math.max(10, totalFrames); // 最低10フレーム
     const frameDelayMs = 1000 / fps;
     const frames = [];
     console.log(`生成フレーム数: ${totalFrames}, 遅延: ${frameDelayMs}ms`);
     for (let i = 0; i < totalFrames; i++) {
         ctx.save();
-        const progress = i / (totalFrames - 1); // 進捗0~1（最後に1到達）
-        const transformTime = progress + delay / animationSpeed;
+        const progress = i / (totalFrames - 1);
+        const transformTime = progress * 2 * Math.PI + delay / animationSpeed; // 周期強化
         console.log(`フレーム${i}: transformTime=${transformTime.toFixed(2)}`);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         applyAnimation(transformTime, canvas.width, canvas.height);
         ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
         ctx.restore();
         const frameData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        // 簡易ハッシュでフレーム差分確認（ピクセルR値合計）
+        // 改善ハッシュ: 位置考慮 (x*y*R + G) % 1e9 for difference detection
         let hash = 0;
         for (let j = 0; j < frameData.data.length; j += 4) {
-            hash += frameData.data[j];
+            const pos = j / 4;
+            const x = pos % canvas.width;
+            const y = Math.floor(pos / canvas.width);
+            hash = (hash * 31 + frameData.data[j] * (x + 1) + frameData.data[j+1] * (y + 1)) % 1e9;
         }
         console.log(`フレーム${i} ハッシュ: ${hash}`);
         frames.push(frameData);
@@ -258,7 +261,7 @@ generateButton.addEventListener('click', () => {
     exportAnimation(frames, frameDelayMs, totalFrames);
 });
 
-// エクスポート関数（修正: GIF transparent=0x000000, dispose=2 / APNG cnum=0固定, premultiply全ピクセル）
+// エクスポート関数 (修正: APNG cnum=0, GIF transparent=0x000000, dispose=2)
 function exportAnimation(frames, frameDelayMs, totalFrames) {
     const width = canvas.width;
     const height = canvas.height;
@@ -274,12 +277,12 @@ function exportAnimation(frames, frameDelayMs, totalFrames) {
             height: height,
             workerScript: 'gif.worker.js',
             dither: colorLimit < 256 ? 'FloydSteinberg-serpentine' : false,
-            background: '#00000000', // 透明背景
-            transparent: 0x000000, // 黒を透過（背景黒防止）
+            background: '#00000000',
+            transparent: 0x000000, // 黒を透明に (背景が黒の場合調整, e.g. 0xFFFFFF for white)
             debug: true
         });
         frames.forEach((frameData, i) => {
-            gif.addFrame(frameData, { delay: frameDelayMs, copy: true, dispose: 2 }); // dispose=2: background復元
+            gif.addFrame(frameData, { delay: frameDelayMs, copy: true, dispose: 2 }); // dispose=2 for background restore
             console.log(`GIFフレーム${i}追加`);
         });
         gif.on('finished', (blob) => {
@@ -294,19 +297,18 @@ function exportAnimation(frames, frameDelayMs, totalFrames) {
     } else if (outputFormat === 'APNG') {
         const frameBuffers = frames.map((frameData) => {
             const data = frameData.data;
-            // Premultiply alpha 全ピクセル（透過保全）
             for (let i = 0; i < data.length; i += 4) {
                 const alpha = data[i + 3] / 255;
-                data[i] = Math.round(data[i] * alpha);     // R
-                data[i + 1] = Math.round(data[i + 1] * alpha); // G
-                data[i + 2] = Math.round(data[i + 2] * alpha); // B
+                data[i] = Math.round(data[i] * alpha);
+                data[i + 1] = Math.round(data[i + 1] * alpha);
+                data[i + 2] = Math.round(data[i + 2] * alpha);
             }
             return data.buffer;
         });
         const delays = new Array(totalFrames).fill(frameDelayMs);
         console.log(`APNGフレーム数: ${frameBuffers.length}, 遅延配列: ${delays}`);
         try {
-            const apngBuffer = UPNG.encode(frameBuffers, width, height, 0, delays); // cnum=0でlossless透過
+            const apngBuffer = UPNG.encode(frameBuffers, width, height, 0, delays); // cnum=0 for lossless
             const blob = new Blob([apngBuffer], { type: 'image/apng' });
             downloadFile(blob, 'animation.apng');
         } catch (e) {
