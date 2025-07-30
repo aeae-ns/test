@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>GIF & APNG ANIMATOR</title>
-    <!-- gif.js CDN (GitHubからホストされたものを使用) -->
+    <!-- gif.js: GIF生成ライブラリ。worker.jsも必要なので、コード内でworkerScriptを指定 -->
     <script src="https://cdn.jsdelivr.net/gh/jnordberg/gif.js@master/dist/gif.js"></script>
-    <!-- UPNG.js CDN (GitHubからホストされたものを使用) -->
+    <!-- UPNG.js: APNGエンコードライブラリ。pako.jsが必要 -->
     <script src="https://cdn.jsdelivr.net/gh/photopea/UPNG.js@master/UPNG.js"></script>
-    <!-- pako.js CDN (必要に応じてUPNG.jsが使用) -->
+    <!-- pako.js: zlib圧縮/解凍。UPNG.jsの依存 -->
     <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
     <style>
         * {
