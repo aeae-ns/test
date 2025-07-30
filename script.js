@@ -121,13 +121,13 @@ function getEasingFunction() {
     }
 }
 
-// アニメーション適用関数 (各タイプ)
+// applyAnimation関数（微修正: ctx.globalAlphaリセット追加）
 function applyAnimation(transformTime, width, height) {
     const easeFunc = getEasingFunction();
-    const eased = easeFunc((transformTime % 1)); // 0-1の進捗
-    const amp = intensity * 50; // 振幅調整
+    const eased = easeFunc((transformTime % 1));
+    const amp = intensity * 50;
     ctx.save();
-    ctx.translate(width / 2, height / 2); // 中心基準
+    ctx.translate(width / 2, height / 2);
     switch (animationType) {
         case '浮遊': // Y軸移動
             ctx.translate(0, Math.sin(transformTime * 2 * Math.PI) * amp);
@@ -204,7 +204,14 @@ function applyAnimation(transformTime, width, height) {
             break;
     }
     ctx.translate(-width / 2, -height / 2); // 元に戻す
+if (animationType === 'フェードイン・アウト') {
+        ctx.globalAlpha = Math.abs(Math.sin(transformTime * 2 * Math.PI)) * (1 - intensity) + intensity;
+    }
+    ctx.translate(-width / 2, -height / 2);
+    // 描画前にglobalAlphaリセット（静止画防止）
+    if (animationType !== 'フェードイン・アウト') ctx.globalAlpha = 1;
 }
+
 
 // プレビュー更新 (リアルタイムアニメーション)
 function updatePreview() {
@@ -222,11 +229,11 @@ function updatePreview() {
     animate();
 }
 
-// 生成ボタン: フレームキャプチャして出力
+// 生成ボタン: フレームキャプチャ（微修正: restore()をループ外に移動防止）
 generateButton.addEventListener('click', () => {
     if (!uploadedImage) return alert('PNGをアップロードしてください');
-    const totalFrames = Math.round(fps * animationSpeed); // 1周期分のフレーム
-    const frameDelayMs = 1000 / fps; // 各フレームの遅延 (ms)
+    const totalFrames = Math.round(fps * animationSpeed);
+    const frameDelayMs = 1000 / fps;
     const frames = [];
     for (let i = 0; i < totalFrames; i++) {
         const progress = i / totalFrames;
@@ -234,18 +241,19 @@ generateButton.addEventListener('click', () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         applyAnimation(transformTime, canvas.width, canvas.height);
         ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
-        ctx.restore();
-        frames.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        ctx.restore(); // ここでrestore（save/restoreペア）
+        const frameData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        frames.push(frameData);
     }
     exportAnimation(frames, frameDelayMs, totalFrames);
 });
 
-// エクスポート関数
+// エクスポート関数（修正: workerScript, copy: true, dither, ArrayBuffer変換）
 function exportAnimation(frames, frameDelayMs, totalFrames) {
     const width = canvas.width;
     const height = canvas.height;
     const gifQualityMap = { '高品質': 10, '標準品質': 20, '低品質': 30 };
-    const repeat = loop === Infinity ? 0 : loop - 1; // GIF: 0=forever, 正数=回数
+    const repeat = loop === Infinity ? 0 : loop - 1;
 
     if (outputFormat === 'GIF') {
         const gif = new GIF({
@@ -254,26 +262,32 @@ function exportAnimation(frames, frameDelayMs, totalFrames) {
             repeat: repeat,
             width: width,
             height: height,
-            dither: colorLimit < 256 ? 'FloydSteinberg' : false // 色制限でディザリング
+            workerScript: 'https://cdn.jsdelivr.net/gh/jnordberg/gif.js@master/dist/gif.worker.js', // 追加: Workerロード
+            dither: colorLimit < 256 ? 'FloydSteinberg-serpentine' : false, // 色制限でディザリング
+            debug: true // デバッグオン（コンソールでエラー確認）
         });
         frames.forEach((frameData) => {
-            gif.addFrame(frameData, { delay: frameDelayMs });
+            gif.addFrame(frameData, { delay: frameDelayMs, copy: true, dispose: -1 }); // copy: true追加（データコピー）
         });
         gif.on('finished', (blob) => {
-            downloadFile(blob, 'animation.gif');
+            if (blob) {
+                downloadFile(blob, 'animation.gif');
+            } else {
+                console.error('GIF生成失敗: blobがnull');
+            }
         });
+        gif.on('progress', (p) => console.log('GIF進捗: ' + p)); // 進捗ログ
         gif.render();
     } else if (outputFormat === 'APNG') {
-        // UPNG用にフレームをArrayBuffer (RGBA) に変換
-        const frameBuffers = frames.map((frameData) => {
-            const rgba = new Uint8Array(frameData.data.buffer); // RGBAデータ
-            return rgba.buffer; // ArrayBuffer
-        });
-        const delays = new Array(totalFrames).fill(frameDelayMs); // 各フレームの遅延 (ms)
-        const apngBuffer = UPNG.encode(frameBuffers, width, height, colorLimit, delays);
-        // 注意: UPNG.jsのループはデフォルト無限 (acTLのnum_plays=0)。有限ループはカスタム実装必要だが、省略
-        const blob = new Blob([apngBuffer], { type: 'image/apng' });
-        downloadFile(blob, 'animation.apng');
+        const frameBuffers = frames.map((frameData) => frameData.data.buffer); // ArrayBufferに変換（RGBA）
+        const delays = new Array(totalFrames).fill(frameDelayMs); // delays配列（ms単位）
+        try {
+            const apngBuffer = UPNG.encode(frameBuffers, width, height, colorLimit === 256 ? 0 : colorLimit, delays); // cnum=0でlossless
+            const blob = new Blob([apngBuffer], { type: 'image/apng' });
+            downloadFile(blob, 'animation.apng');
+        } catch (e) {
+            console.error('APNG生成エラー: ' + e.message);
+        }
     }
 }
 
