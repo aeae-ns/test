@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIF & APNG ANIMATOR</title>
+    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, #495057, #6c757d);
+            border-radius: 1px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2d3748;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 48px;
+            margin-bottom: 40px;
+        }
+
+        .preview-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 32px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #495057, #6c757d, #868e96);
+        }
+
+        .controls-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 32px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            height: fit-content;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+            color: #1e293b;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .preview-container {
+            min-height: 400px;
+            background: 
+                linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
+                linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
+                linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            border: 2px dashed #ced4da;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .preview-container:hover {
+            border-color: #495057;
+        }
+
+        .preview-container.dragover {
+            border-color: #495057;
+            transform: scale(1.02);
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 100%;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .preview-placeholder {
+            color: #64748b;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            color: #94a3b8;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            color: #374151;
+            border: 1px solid #d1d5db;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #495057, #343a40);
+            color: white;
+            border: 1px solid #343a40;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #343a40, #212529);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            border: 1px solid #495057;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #495057, #343a40);
+        }
+
+        .controls {
+            margin: 24px 0;
+        }
+
+        .control-group {
+            margin-bottom: 24px;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .control-input, .control-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            color: #374151;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-input:focus, .control-select:focus {
+            outline: none;
+            border-color: #495057;
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 3px rgba(73, 80, 87, 0.1);
+        }
+
+        .range-input {
+            width: 100%;
+            margin: 12px 0;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: linear-gradient(90deg, #e2e8f0, #cbd5e1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .range-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #64748b, #475569);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(100, 116, 139, 0.3);
+        }
+
+        .range-input::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #64748b, #475569);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(100, 116, 139, 0.3);
+        }
+
+        .animation-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #64748b, #475569);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .file-info {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 16px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .file-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 4px 0;
+        }
+
+        .file-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .value-display {
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .size-controls {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border: 1px solid #cbd5e1;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .size-controls h3 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: #1e293b;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .size-input-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .size-input {
+            width: 80px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            color: #374151;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .size-input:focus {
+            outline: none;
+            border-color: #495057;
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .aspect-ratio-btn {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            min-width: 40px;
+        }
+
+        .aspect-ratio-btn:hover {
+            background: linear-gradient(135deg, #475569, #334155);
+        }
+
+        .aspect-ratio-btn.unlocked {
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+        }
+
+        .reset-size-btn {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .reset-size-btn:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .control-row {
+                grid-template-columns: 1fr;
+            }
+
+            .size-input-group {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* アニメーション定義 */
+        .floating-animation {
+            animation: float var(--animation-duration, 3s) ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: scale(var(--base-scale, 1)) translateY(0px); }
+            50% { transform: scale(var(--base-scale, 1)) translateY(var(--float-distance, -10px)); }
+        }
+
+        .breathing-animation {
+            animation: breathe var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(var(--base-scale, 1)); }
+            50% { transform: scale(var(--breathe-scale, 1.05)); }
+        }
+
+        .swaying-animation {
+            animation: sway var(--animation-duration, 4s) ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: scale(var(--base-scale, 1)) rotate(0deg); }
+            25% { transform: scale(var(--base-scale, 1)) rotate(var(--sway-angle, 2deg)); }
+            75% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--sway-angle, 2deg) * -1)); }
+        }
+
+        .bouncing-animation {
+            animation: bounce var(--animation-duration, 1s) ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(var(--base-scale, 1)) translateY(0px); }
+            50% { transform: scale(var(--base-scale, 1)) translateY(var(--bounce-height, -20px)); }
+        }
+
+        .pulsing-animation {
+            animation: pulse var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(var(--base-scale, 1)); }
+            50% { opacity: var(--pulse-opacity, 0.8); transform: scale(var(--pulse-scale, 1.1)); }
+        }
+
+        .rotating-right-animation {
+            animation: rotate-right var(--animation-duration, 10s) linear infinite;
+        }
+
+        @keyframes rotate-right {
+            0% { transform: scale(var(--base-scale, 1)) rotate(0deg); }
+            100% { transform: scale(var(--base-scale, 1)) rotate(360deg); }
+        }
+
+        .rotating-left-animation {
+            animation: rotate-left var(--animation-duration, 10s) linear infinite;
+        }
+
+        @keyframes rotate-left {
+            0% { transform: scale(var(--base-scale, 1)) rotate(0deg); }
+            100% { transform: scale(var(--base-scale, 1)) rotate(-360deg); }
+        }
+
+        .wobbling-animation {
+            animation: wobble var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes wobble {
+            0%, 100% { transform: scale(var(--base-scale, 1)) rotate(0deg); }
+            15% { transform: scale(var(--base-scale, 1)) rotate(var(--wobble-angle, 5deg)); }
+            30% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--wobble-angle, 5deg) * -1)); }
+            45% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--wobble-angle, 5deg) * 0.7)); }
+            60% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--wobble-angle, 5deg) * -0.7)); }
+            75% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--wobble-angle, 5deg) * 0.3)); }
+        }
+
+        .shaking-animation {
+            animation: shake var(--animation-duration, 0.5s) ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: scale(var(--base-scale, 1)) translate(0px, 0px); }
+            10% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), var(--shake-y, 1px)); }
+            20% { transform: scale(var(--base-scale, 1)) translate(calc(var(--shake-x, 2px) * -1), var(--shake-y, 1px)); }
+            30% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), calc(var(--shake-y, 1px) * -1)); }
+            40% { transform: scale(var(--base-scale, 1)) translate(calc(var(--shake-x, 2px) * -1), calc(var(--shake-y, 1px) * -1)); }
+            50% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), var(--shake-y, 1px)); }
+            60% { transform: scale(var(--base-scale, 1)) translate(calc(var(--shake-x, 2px) * -1), calc(var(--shake-y, 1px) * -1)); }
+            70% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), calc(var(--shake-y, 1px) * -1)); }
+            80% { transform: scale(var(--base-scale, 1)) translate(calc(var(--shake-x, 2px) * -1), var(--shake-y, 1px)); }
+            90% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), var(--shake-y, 1px)); }
+        }
+
+        .sliding-horizontal-animation {
+            animation: slide-horizontal var(--animation-duration, 3s) ease-in-out infinite;
+        }
+
+        @keyframes slide-horizontal {
+            0%, 100% { transform: scale(var(--base-scale, 1)) translateX(0px); }
+            50% { transform: scale(var(--base-scale, 1)) translateX(var(--slide-distance, 30px)); }
+        }
+
+        .sliding-vertical-animation {
+            animation: slide-vertical var(--animation-duration, 3s) ease-in-out infinite;
+        }
+
+        @keyframes slide-vertical {
+            0%, 100% { transform: scale(var(--base-scale, 1)) translateY(0px); }
+            50% { transform: scale(var(--base-scale, 1)) translateY(var(--slide-distance, -30px)); }
+        }
+
+        .figure-eight-animation {
+            animation: figure-eight var(--animation-duration, 4s) ease-in-out infinite;
+        }
+
+        @keyframes figure-eight {
+            0% { transform: scale(var(--base-scale, 1)) translate(0px, 0px); }
+            12.5% { transform: scale(var(--base-scale, 1)) translate(var(--eight-size, 15px), calc(var(--eight-size, 15px) * -0.5)); }
+            25% { transform: scale(var(--base-scale, 1)) translate(0px, calc(var(--eight-size, 15px) * -1)); }
+            37.5% { transform: scale(var(--base-scale, 1)) translate(calc(var(--eight-size, 15px) * -1), calc(var(--eight-size, 15px) * -0.5)); }
+            50% { transform: scale(var(--base-scale, 1)) translate(0px, 0px); }
+            62.5% { transform: scale(var(--base-scale, 1)) translate(calc(var(--eight-size, 15px) * -1), calc(var(--eight-size, 15px) * 0.5)); }
+            75% { transform: scale(var(--base-scale, 1)) translate(0px, var(--eight-size, 15px)); }
+            87.5% { transform: scale(var(--base-scale, 1)) translate(var(--eight-size, 15px), calc(var(--eight-size, 15px) * 0.5)); }
+            100% { transform: scale(var(--base-scale, 1)) translate(0px, 0px); }
+        }
+
+        .heartbeat-animation {
+            animation: heartbeat var(--animation-duration, 1s) ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(var(--base-scale, 1)); }
+            14% { transform: scale(calc(var(--base-scale, 1) * var(--heartbeat-scale, 1.1))); }
+            28% { transform: scale(var(--base-scale, 1)); }
+            42% { transform: scale(calc(var(--base-scale, 1) * var(--heartbeat-scale, 1.1))); }
+            70% { transform: scale(var(--base-scale, 1)); }
+        }
+
+        .elastic-animation {
+            animation: elastic var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes elastic {
+            0%, 100% { transform: scale(var(--base-scale, 1)) scaleX(1); }
+            25% { transform: scale(var(--base-scale, 1)) scaleX(var(--elastic-x, 1.2)) scaleY(var(--elastic-y, 0.8)); }
+            50% { transform: scale(var(--base-scale, 1)) scaleX(var(--elastic-y, 0.8)) scaleY(var(--elastic-x, 1.2)); }
+            75% { transform: scale(var(--base-scale, 1)) scaleX(var(--elastic-x, 1.2)) scaleY(var(--elastic-y, 0.8)); }
+        }
+
+        .pendulum-animation {
+            animation: pendulum var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes pendulum {
+            0%, 100% { transform: scale(var(--base-scale, 1)) rotate(var(--pendulum-angle, 15deg)); }
+            50% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--pendulum-angle, 15deg) * -1)); }
+        }
+
+        .spiral-animation {
+            animation: spiral var(--animation-duration, 3s) linear infinite;
+        }
+
+        @keyframes spiral {
+            0% { transform: scale(var(--base-scale, 1)) rotate(0deg) translateX(0px) rotate(0deg); }
+            100% { transform: scale(var(--base-scale, 1)) rotate(360deg) translateX(var(--spiral-radius, 20px)) rotate(-360deg); }
+        }
+
+        .wave-animation {
+            animation: wave var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: scale(var(--base-scale, 1)) translateY(0px) skewX(0deg); }
+            25% { transform: scale(var(--base-scale, 1)) translateY(calc(var(--wave-height, -10px) * 0.7)) skewX(var(--wave-skew, 5deg)); }
+            50% { transform: scale(var(--base-scale, 1)) translateY(var(--wave-height, -10px)) skewX(0deg); }
+            75% { transform: scale(var(--base-scale, 1)) translateY(calc(var(--wave-height, -10px) * 0.7)) skewX(calc(var(--wave-skew, 5deg) * -1)); }
+        }
+
+        .zoom-in-out-animation {
+            animation: zoom-in-out var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes zoom-in-out {
+            0%, 100% { transform: scale(var(--base-scale, 1)); }
+            50% { transform: scale(calc(var(--base-scale, 1) * var(--zoom-scale, 1.3))); }
+        }
+
+        .flip-horizontal-animation {
+            animation: flip-horizontal var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes flip-horizontal {
+            0%, 100% { transform: scale(var(--base-scale, 1)) scaleX(1); }
+            50% { transform: scale(var(--base-scale, 1)) scaleX(-1); }
+        }
+
+        .flip-vertical-animation {
+            animation: flip-vertical var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes flip-vertical {
+            0%, 100% { transform: scale(var(--base-scale, 1)) scaleY(1); }
+            50% { transform: scale(var(--base-scale, 1)) scaleY(-1); }
+        }
+
+        .typewriter-animation {
+            animation: typewriter var(--animation-duration, 3s) steps(10) infinite;
+        }
+
+        @keyframes typewriter {
+            0% { transform: scale(var(--base-scale, 1)); clip-path: inset(0 100% 0 0); }
+            100% { transform: scale(var(--base-scale, 1)); clip-path: inset(0 0 0 0); }
+        }
+
+        .fade-in-out-animation {
+            animation: fade-in-out var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes fade-in-out {
+            0%, 100% { transform: scale(var(--base-scale, 1)); opacity: var(--fade-min, 0.3); }
+            50% { transform: scale(var(--base-scale, 1)); opacity: 1; }
+        }
+
+        .slide-bounce-animation {
+            animation: slide-bounce var(--animation-duration, 2s) ease-in-out infinite;
+        }
+
+        @keyframes slide-bounce {
+            0%, 100% { transform: scale(var(--base-scale, 1)) translateX(0px); }
+            25% { transform: scale(var(--base-scale, 1)) translateX(var(--slide-bounce-distance, 20px)); }
+            50% { transform: scale(var(--base-scale, 1)) translateX(calc(var(--slide-bounce-distance, 20px) * 1.2)); }
+            75% { transform: scale(var(--base-scale, 1)) translateX(var(--slide-bounce-distance, 20px)); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>GIF & APNG ANIMATOR</h1>
+            <p>PNG ▸▸▸ GIF / APNG</p>
+        </header>
+
+        <div class="main-content">
+            <div class="preview-section">
+                <h2 class="section-title">
+                    <span>✦</span>
+                    Preview
+                </h2>
+                
+                <div class="preview-container" id="previewContainer">
+                    <div class="preview-placeholder">
+                        <div class="upload-icon">+</div>
+                        <p>PNGファイルをドラッグ&ドロップ<br>またはクリックしてアップロード</p>
+                    </div>
+                </div>
+
+                <input type="file" id="fileInput" class="file-input" accept="image/png">
+
+                <div class="size-controls" id="sizeControls" style="display: none;">
+                    <h3>⚏ 出力サイズ調整</h3>
+                    <div class="size-input-group">
+                        <label>幅:</label>
+                        <input type="number" id="outputWidth" class="size-input" min="50" max="1000" value="300">
+                        <span>px</span>
+                        <button id="aspectRatioBtn" class="aspect-ratio-btn" title="縦横比を固定">🔗</button>
+                        <label>高さ:</label>
+                        <input type="number" id="outputHeight" class="size-input" min="50" max="1000" value="300">
+                        <span>px</span>
+                        <button id="resetSizeBtn" class="reset-size-btn" title="元のサイズに戻す">↻</button>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 8px;">
+                        現在のサイズ: <span id="currentSizeDisplay">-</span>
+                    </div>
+                </div>
+
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <div class="file-info-item">
+                        <span>ファイル名:</span>
+                        <span id="fileName">-</span>
+                    </div>
+                    <div class="file-info-item">
+                        <span>画像サイズ:</span>
+                        <span id="imageSize">-</span>
+                    </div>
+                    <div class="file-info-item">
+                        <span>推定ファイルサイズ:</span>
+                        <span id="estimatedSize">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <h2 class="section-title">
+                    <span>⚙</span>
+                    Setting
+                </h2>
+
+                <div class="controls" id="controls" style="display: none;">
+                    <div class="control-group">
+                        <label class="control-label">アニメーションタイプ</label>
+                        <select class="control-select" id="animationType">
+                            <option value="floating">浮遊</option>
+                            <option value="breathing">呼吸</option>
+                            <option value="swaying">揺れ</option>
+                            <option value="bouncing">バウンス</option>
+                            <option value="pulsing">パルス</option>
+                            <option value="rotating-right">右回転</option>
+                            <option value="rotating-left">左回転</option>
+                            <option value="wobbling">ぐらぐら</option>
+                            <option value="shaking">震え</option>
+                            <option value="sliding-horizontal">左右スライド</option>
+                            <option value="sliding-vertical">上下スライド</option>
+                            <option value="figure-eight">8の字</option>
+                            <option value="heartbeat">心拍</option>
+                            <option value="elastic">弾性</option>
+                            <option value="pendulum">振り子</option>
+                            <option value="spiral">螺旋</option>
+                            <option value="wave">波</option>
+                            <option value="zoom-in-out">ズームイン・アウト</option>
+                            <option value="flip-horizontal">水平フリップ</option>
+                            <option value="flip-vertical">垂直フリップ</option>
+                            <option value="typewriter">タイプライター</option>
+                            <option value="fade-in-out">フェードイン・アウト</option>
+                            <option value="slide-bounce">スライドバウンス</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">アニメーション速度: <span class="value-display" id="speedValue">3.0</span>秒/1周期</label>
+                        <input type="range" class="range-input" id="animationSpeed" min="0.5" max="10" step="0.1" value="3.0">
+                    </div>
+
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label class="control-label">強度: <span class="value-display" id="intensityValue">50</span>%</label>
+                            <input type="range" class="range-input" id="animationIntensity" min="10" max="200" step="5" value="50">
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">遅延: <span class="value-display" id="delayValue">0</span>秒</label>
+                            <input type="range" class="range-input" id="animationDelay" min="0" max="5" step="0.1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">イージング</label>
+                        <select class="control-select" id="easingType">
+                            <option value="ease-in-out">スムーズ (ease-in-out)</option>
+                            <option value="linear">リニア (linear)</option>
+                            <option value="ease-in">イーズイン (ease-in)</option>
+                            <option value="ease-out">イーズアウト (ease-out)</option>
+                            <option value="cubic-bezier(0.68, -0.55, 0.265, 1.55)">バウンス</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">色数制限: <span class="value-display" id="colorValue">128</span>色（容量削減用）</label>
+                        <input type="range" class="range-input" id="colorCount" min="8" max="256" step="8" value="128">
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">画像サイズ調整: <span class="value-display" id="scaleValue">100</span>%</label>
+                        <input type="range" class="range-input" id="imageScale" min="10" max="200" step="5" value="100">
+                    </div>
+
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label class="control-label">フレームレート</label>
+                            <select class="control-select" id="frameRate">
+                                <option value="15">15 FPS</option>
+                                <option value="24">24 FPS</option>
+                                <option value="30" selected>30 FPS</option>
+                                <option value="60">60 FPS</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">品質設定</label>
+                            <select class="control-select" id="qualityLevel">
+                                <option value="high">高品質</option>
+                                <option value="medium" selected>標準品質</option>
+                                <option value="low">低品質</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">ループ設定</label>
+                        <select class="control-select" id="loopType">
+                            <option value="infinite">無限ループ</option>
+                            <option value="1">1回のみ</option>
+                            <option value="3">3回</option>
+                            <option value="5">5回</option>
+                            <option value="10">10回</option>
+                        </select>
+                    </div>
+
+                    <div style="height: 1px; background: linear-gradient(90deg, transparent, #e2e8f0, transparent); margin: 24px 0;"></div>
+
+                    <div class="control-group">
+                        <button class="btn" id="resetBtn" style="width: 100%;">↻ アニメーションリセット</button>
+                    </div>
+
+                    <div class="control-group">
+                        <button class="btn" id="deleteBtn" style="width: 100%;">✕ 画像削除</button>
+                    </div>
+
+                    <div style="height: 1px; background: linear-gradient(90deg, transparent, #e2e8f0, transparent); margin: 24px 0;"></div>
+
+                    <div class="control-group">
+                        <label class="control-label">出力形式</label>
+                        <select class="control-select" id="outputFormat">
+                            <option value="apng">APNG形式</option>
+                            <option value="gif">GIF形式</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" id="generateBtn" disabled style="width: 100%; margin: 24px 0; text-align: center; display: flex; align-items: center; justify-content: center;">
+                        ⚡ アニメーション生成 ⚡
+                    </button>
+
+                    <div class="progress-bar" id="progressBar" style="display: none;">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+
+                    <button class="btn btn-secondary" id="downloadBtn" disabled style="width: 100%; display: none;">
+                        ⇩ ファイルダウンロード ⇩
+                    </button>
+                </div>
+
+                <div id="uploadPrompt" style="text-align: center; color: #64748b; padding: 40px 20px;">
+                    <p>PNGファイルをアップロードして<br>アニメーション設定を開始</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 40px 24px; color: #64748b; border-top: 1px solid #e2e8f0; margin-top: 60px;">
+        <div style="font-size: 1rem; font-weight: 600; margin-bottom: 16px;">
+            @aeae_trpg
+        </div>
+        <div style="font-size: 0.75rem; line-height: 1.5; max-width: 800px; margin: 0 auto; color: #94a3b8;">
+            <p style="margin-bottom: 8px;">⚠ 処理された画像の著作権は原則として元の画像の権利者に帰属します ⚠</p>
+            <p style="margin-bottom: 8px;">⚠ 本ツールを使用して生成されたデータの利用については、利用者の責任において行ってください ⚠</p>
+            <p>⚠ アップロードされたファイルや出力されたアニメーションに起因するいかなる損害やトラブルについても、当方は責任を負いかねます ⚠</p>
+        </div>
+    </footer>
+
+    <script>
+        let currentImage = null;
+        let animationCanvas = null;
+        let animationContext = null;
+        let animationFrames = [];
+        let originalWidth = 0;
+        let originalHeight = 0;
+        let aspectRatioLocked = true;
+
+        // DOM要素の取得
+        const previewContainer = document.getElementById('previewContainer');
+        const fileInput = document.getElementById('fileInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const fileInfo = document.getElementById('fileInfo');
+        const controls = document.getElementById('controls');
+        const uploadPrompt = document.getElementById('uploadPrompt');
+        const sizeControls = document.getElementById('sizeControls');
+
+        // コントロール要素
+        const animationType = document.getElementById('animationType');
+        const animationSpeed = document.getElementById('animationSpeed');
+        const animationIntensity = document.getElementById('animationIntensity');
+        const animationDelay = document.getElementById('animationDelay');
+        const easingType = document.getElementById('easingType');
+        const colorCount = document.getElementById('colorCount');
+        const frameRate = document.getElementById('frameRate');
+        const qualityLevel = document.getElementById('qualityLevel');
+        const loopType = document.getElementById('loopType');
+
+        // サイズ調整要素
+        const outputWidth = document.getElementById('outputWidth');
+        const outputHeight = document.getElementById('outputHeight');
+        const aspectRatioBtn = document.getElementById('aspectRatioBtn');
+        const resetSizeBtn = document.getElementById('resetSizeBtn');
+        const currentSizeDisplay = document.getElementById('currentSizeDisplay');
+
+        // 値表示要素
+        const speedValue = document.getElementById('speedValue');
+        const intensityValue = document.getElementById('intensityValue');
+        const delayValue = document.getElementById('delayValue');
+        const colorValue = document.getElementById('colorValue');
+        const scaleValue = document.getElementById('scaleValue');
+
+        // 追加のコントロール要素
+        const outputFormat = document.getElementById('outputFormat');
+        const imageScale = document.getElementById('imageScale');
+
+        // イベントリスナーの設定
+        previewContainer.addEventListener('dragover', handleDragOver);
+        previewContainer.addEventListener('dragleave', handleDragLeave);
+        previewContainer.addEventListener('drop', handleDrop);
+        previewContainer.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+        generateBtn.addEventListener('click', generateAPNG);
+        downloadBtn.addEventListener('click', downloadAPNG);
+        resetBtn.addEventListener('click', resetAnimation);
+        deleteBtn.addEventListener('click', deleteImage);
+
+        // サイズ調整イベント
+        outputWidth.addEventListener('input', handleWidthChange);
+        outputHeight.addEventListener('input', handleHeightChange);
+        aspectRatioBtn.addEventListener('click', toggleAspectRatio);
+        resetSizeBtn.addEventListener('click', resetToOriginalSize);
+
+        // コントロールイベント
+        animationType.addEventListener('change', updatePreview);
+        animationSpeed.addEventListener('input', () => {
+            speedValue.textContent = animationSpeed.value;
+            updatePreview();
+        });
+        animationIntensity.addEventListener('input', () => {
+            intensityValue.textContent = animationIntensity.value;
+            updatePreview();
+        });
+        animationDelay.addEventListener('input', () => {
+            delayValue.textContent = animationDelay.value;
+            updatePreview();
+        });
+        easingType.addEventListener('change', updatePreview);
+        loopType.addEventListener('change', updatePreview);
+        colorCount.addEventListener('input', () => {
+            colorValue.textContent = colorCount.value;
+        });
+        imageScale.addEventListener('input', () => {
+            scaleValue.textContent = imageScale.value;
+            updatePreviewScale();
+        });
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            previewContainer.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            previewContainer.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            previewContainer.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('画像ファイルを選択してください。');
+                return;
+            }
+
+            // 5MBのファイルサイズ制限をチェック
+            if (file.size > 5 * 1024 * 1024) {
+                alert('❌ ファイルサイズが5MBを超えています。\n5MB以下の画像ファイルを選択してください。');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    currentImage = img;
+                    originalWidth = img.width;
+                    originalHeight = img.height;
+                    
+                    // 出力サイズを元画像サイズに設定
+                    outputWidth.value = originalWidth;
+                    outputHeight.value = originalHeight;
+                    updateCurrentSizeDisplay();
+                    
+                    displayPreview(img);
+                    updateFileInfo(file, img);
+                    showControls();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayPreview(img) {
+            previewContainer.innerHTML = '';
+            const previewImg = img.cloneNode();
+            previewImg.className = 'preview-image floating-animation';
+            previewImg.style.maxWidth = '100%';
+            previewImg.style.maxHeight = '100%';
+            previewContainer.appendChild(previewImg);
+            updatePreview();
+        }
+
+        function showControls() {
+            controls.style.display = 'block';
+            sizeControls.style.display = 'block';
+            uploadPrompt.style.display = 'none';
+            generateBtn.disabled = false;
+        }
+
+        function handleWidthChange() {
+            if (aspectRatioLocked && originalWidth && originalHeight) {
+                const newWidth = parseInt(outputWidth.value);
+                const newHeight = Math.round((newWidth / originalWidth) * originalHeight);
+                outputHeight.value = newHeight;
+            }
+            updateCurrentSizeDisplay();
+        }
+
+        function handleHeightChange() {
+            if (aspectRatioLocked && originalWidth && originalHeight) {
+                const newHeight = parseInt(outputHeight.value);
+                const newWidth = Math.round((newHeight / originalHeight) * originalWidth);
+                outputWidth.value = newWidth;
+            }
+            updateCurrentSizeDisplay();
+        }
+
+        function toggleAspectRatio() {
+            aspectRatioLocked = !aspectRatioLocked;
+            if (aspectRatioLocked) {
+                aspectRatioBtn.textContent = '🔗';
+                aspectRatioBtn.classList.remove('unlocked');
+                aspectRatioBtn.title = '縦横比を固定';
+            } else {
+                aspectRatioBtn.textContent = '🔓';
+                aspectRatioBtn.classList.add('unlocked');
+                aspectRatioBtn.title = '縦横比を自由に変更';
+            }
+        }
+
+        function resetToOriginalSize() {
+            if (originalWidth && originalHeight) {
+                outputWidth.value = originalWidth;
+                outputHeight.value = originalHeight;
+                updateCurrentSizeDisplay();
+            }
+        }
+
+        function updateCurrentSizeDisplay() {
+            const w = outputWidth.value;
+            const h = outputHeight.value;
+            currentSizeDisplay.textContent = `${w} × ${h}px`;
+        }
+
+        function updatePreviewScale() {
+            const previewImg = previewContainer.querySelector('.preview-image');
+            if (previewImg) {
+                const scale = imageScale.value / 100;
+                previewImg.style.setProperty('--base-scale', scale);
+            }
+        }
+
+        function updatePreview() {
+            const previewImg = previewContainer.querySelector('.preview-image');
+            if (previewImg) {
+                const type = animationType.value;
+                const speed = animationSpeed.value;
+                const intensity = animationIntensity.value;
+                const delay = animationDelay.value;
+                const easing = easingType.value;
+                const loop = loopType.value;
+                const scale = imageScale.value / 100;
+                
+                // アニメーションクラスをリセット
+                previewImg.className = 'preview-image';
+                
+                // CSS変数を設定
+                previewImg.style.setProperty('--animation-duration', speed + 's');
+                previewImg.style.setProperty('--animation-delay', delay + 's');
+                previewImg.style.animationTimingFunction = easing;
+                previewImg.style.animationIterationCount = loop;
+                previewImg.style.setProperty('--base-scale', scale);
+                
+                // 強度に応じてアニメーションパラメータを調整
+                const intensityFactor = intensity / 50;
+                
+                switch(type) {
+                    case 'floating':
+                        previewImg.style.setProperty('--float-distance', (-10 * intensityFactor) + 'px');
+                        break;
+                    case 'breathing':
+                        previewImg.style.setProperty('--breathe-scale', (1 + 0.05 * intensityFactor));
+                        break;
+                    case 'swaying':
+                        previewImg.style.setProperty('--sway-angle', (2 * intensityFactor) + 'deg');
+                        break;
+                    case 'bouncing':
+                        previewImg.style.setProperty('--bounce-height', (-20 * intensityFactor) + 'px');
+                        break;
+                    case 'pulsing':
+                        previewImg.style.setProperty('--pulse-opacity', Math.max(0.3, 1 - 0.2 * intensityFactor));
+                        previewImg.style.setProperty('--pulse-scale', (1 + 0.1 * intensityFactor));
+                        break;
+                    case 'wobbling':
+                        previewImg.style.setProperty('--wobble-angle', (5 * intensityFactor) + 'deg');
+                        break;
+                    case 'shaking':
+                        previewImg.style.setProperty('--shake-x', (2 * intensityFactor) + 'px');
+                        previewImg.style.setProperty('--shake-y', (1 * intensityFactor) + 'px');
+                        break;
+                    case 'sliding-horizontal':
+                        previewImg.style.setProperty('--slide-distance', (30 * intensityFactor) + 'px');
+                        break;
+                    case 'sliding-vertical':
+                        previewImg.style.setProperty('--slide-distance', (-30 * intensityFactor) + 'px');
+                        break;
+                    case 'figure-eight':
+                        previewImg.style.setProperty('--eight-size', (15 * intensityFactor) + 'px');
+                        break;
+                    case 'heartbeat':
+                        previewImg.style.setProperty('--heartbeat-scale', (1 + 0.1 * intensityFactor));
+                        break;
+                    case 'elastic':
+                        previewImg.style.setProperty('--elastic-x', (1 + 0.2 * intensityFactor));
+                        previewImg.style.setProperty('--elastic-y', (1 - 0.2 * intensityFactor));
+                        break;
+                    case 'pendulum':
+                        previewImg.style.setProperty('--pendulum-angle', (15 * intensityFactor) + 'deg');
+                        break;
+                    case 'spiral':
+                        previewImg.style.setProperty('--spiral-radius', (20 * intensityFactor) + 'px');
+                        break;
+                    case 'wave':
+                        previewImg.style.setProperty('--wave-height', (-10 * intensityFactor) + 'px');
+                        previewImg.style.setProperty('--wave-skew', (5 * intensityFactor) + 'deg');
+                        break;
+                    case 'zoom-in-out':
+                        previewImg.style.setProperty('--zoom-scale', (1 + 0.3 * intensityFactor));
+                        break;
+                    case 'fade-in-out':
+                        previewImg.style.setProperty('--fade-min', Math.max(0.1, 1 - 0.7 * intensityFactor));
+                        break;
+                    case 'slide-bounce':
+                        previewImg.style.setProperty('--slide-bounce-distance', (20 * intensityFactor) + 'px');
+                        break;
+                }
+                
+                // アニメーションクラスを適用
+                setTimeout(() => {
+                    previewImg.classList.add(type + '-animation');
+                }, 10);
+            }
+        }
+
+        function updateFileInfo(file, img) {
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('imageSize').textContent = `${img.width} × ${img.height}px（元サイズ）`;
+            
+            const fileSizeMB = Math.round(file.size / 1024 / 1024 * 100) / 100;
+            document.getElementById('estimatedSize').textContent = `元画像: ${fileSizeMB}MB（出力ファイルは自動で5MB以下に最適化されます）`;
+            
+            fileInfo.style.display = 'block';
+        }
+
+        function resetAnimation() {
+            updatePreview();
+        }
+
+        function deleteImage() {
+            if (confirm('画像を削除しますか？')) {
+                // 画像とデータをリセット
+                currentImage = null;
+                animationFrames = [];
+                originalWidth = 0;
+                originalHeight = 0;
+                
+                // プレビューエリアを初期状態に戻す
+                previewContainer.innerHTML = `
+                    <div class="preview-placeholder">
+                        <div class="upload-icon">+</div>
+                        <p>PNGファイルをドラッグ&ドロップ<br>またはクリックしてアップロード</p>
+                    </div>
+                `;
+                
+                // UI要素を初期状態に戻す
+                fileInfo.style.display = 'none';
+                controls.style.display = 'none';
+                sizeControls.style.display = 'none';
+                uploadPrompt.style.display = 'block';
+                generateBtn.disabled = true;
+                downloadBtn.disabled = true;
+                downloadBtn.style.display = 'none';
+                progressBar.style.display = 'none';
+                progressFill.style.width = '0%';
+                
+                // ファイル入力をクリア
+                fileInput.value = '';
+            }
+        }
+
+        async function generateAPNG() {
+            if (!currentImage) {
+                alert('❌ 画像をアップロードしてください。');
+                return;
+            }
+
+            progressBar.style.display = 'block';
+            generateBtn.disabled = true;
+            progressFill.style.width = '0%';
+            
+            const format = outputFormat.value;
+            
+            try {
+                if (format === 'gif') {
+                    await createGIF();
+                } else {
+                    await createAPNGFrames();
+                }
+                
+                progressFill.style.width = '100%';
+                
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                    downloadBtn.disabled = false;
+                    downloadBtn.style.display = 'block';
+                    generateBtn.disabled = false;
+                    
+                    const formatName = format === 'gif' ? 'GIF' : 'PNG';
+                    alert(`🎉 ${formatName}生成が完了しました！\nダウンロードボタンからファイルを保存できます。`);
+                }, 500);
+                
+            } catch (error) {
+                console.error('生成エラー:', error);
+                progressBar.style.display = 'none';
+                progressFill.style.width = '0%';
+                generateBtn.disabled = false;
+                
+                let errorMessage = '❌ 生成中にエラーが発生しました。';
+                if (error.message.includes('5MB')) {
+                    errorMessage = '❌ ' + error.message;
+                } else if (error.message.includes('GIF')) {
+                    errorMessage = '❌ GIF生成に失敗しました。画像サイズを小さくするか、色数を減らしてください。';
+                } else if (error.message.includes('APNG')) {
+                    errorMessage = '❌ PNG生成に失敗しました。画像サイズが大きすぎる可能性があります。';
+                }
+                
+                alert(errorMessage);
+            }
+        }
+
+        async function createGIF() {
+            const fps = parseInt(frameRate.value);
+            const duration = parseFloat(animationSpeed.value);
+            const frameCount = Math.max(10, Math.min(60, Math.round(fps * duration))); // 10-60フレームに制限
+            const type = animationType.value;
+            const intensity = parseFloat(animationIntensity.value) / 50;
+            const colors = parseInt(colorCount.value);
+            const outputW = parseInt(outputWidth.value);
+            const outputH = parseInt(outputHeight.value);
+            const scale = parseFloat(imageScale.value) / 100;
+            
+            try {
+                const gif = new GIF({
+                    workers: 2,
+                    quality: qualityLevel.value === 'high' ? 1 : qualityLevel.value === 'medium' ? 10 : 20,
+                    width: outputW,
+                    height: outputH,
+                    repeat: loopType.value === 'infinite' ? 0 : parseInt(loopType.value),
+                    colors: colors,
+                    dither: false
+                });
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = outputW;
+                canvas.height = outputH;
+                
+                let progress = 0;
+                const progressStep = 80 / frameCount;
+                
+                for (let i = 0; i < frameCount; i++) {
+                    // 背景を透明にクリア
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.save();
+                    
+                    const frameProgress = i / frameCount;
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
+                    
+                    ctx.translate(centerX, centerY);
+                    
+                    // アニメーション変換を適用
+                    applyAnimationTransform(ctx, type, frameProgress, intensity, scale);
+                    
+                    ctx.translate(-outputW / 2, -outputH / 2);
+                    ctx.drawImage(currentImage, 0, 0, outputW, outputH);
+                    ctx.restore();
+                    
+                    gif.addFrame(canvas, {delay: Math.round(1000 / fps)});
+                    
+                    progress += progressStep;
+                    progressFill.style.width = progress + '%';
+                    
+                    // UIの更新を待つ
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                }
+                
+                return new Promise((resolve, reject) => {
+                    gif.on('finished', function(blob) {
+                        if (blob.size > 5 * 1024 * 1024) {
+                            reject(new Error('生成されたファイルが5MBを超えています。色数を減らすか品質設定を下げてください。'));
+                            return;
+                        }
+                        animationFrames = [URL.createObjectURL(blob)];
+                        resolve();
+                    });
+                    
+                    gif.on('progress', function(p) {
+                        progressFill.style.width = (80 + p * 20) + '%';
+                    });
+                    
+                    gif.render();
+                });
+                
+            } catch (error) {
+                throw new Error('GIF生成中にエラーが発生しました: ' + error.message);
+            }
+        }
+
+        function applyAnimationTransform(ctx, type, frameProgress, intensity, scale = 1) {
+            // 基本スケールを適用
+            ctx.scale(scale, scale);
+            switch(type) {
+                case 'floating':
+                    const offsetY = Math.sin(frameProgress * Math.PI * 2) * 10 * intensity;
+                    ctx.translate(0, offsetY);
+                    break;
+                case 'breathing':
+                    const breatheScale = 1 + Math.sin(frameProgress * Math.PI * 2) * 0.05 * intensity;
+                    ctx.scale(breatheScale, breatheScale);
+                    break;
+                case 'swaying':
+                    const rotation = Math.sin(frameProgress * Math.PI * 2) * 0.05 * intensity;
+                    ctx.rotate(rotation);
+                    break;
+                case 'bouncing':
+                    const bounceY = Math.abs(Math.sin(frameProgress * Math.PI * 2)) * -20 * intensity;
+                    ctx.translate(0, bounceY);
+                    break;
+                case 'pulsing':
+                    const pulseScale = 1 + Math.sin(frameProgress * Math.PI * 2) * 0.1 * intensity;
+                    ctx.scale(pulseScale, pulseScale);
+                    break;
+                case 'rotating-right':
+                    const rotateAngleRight = frameProgress * Math.PI * 2;
+                    ctx.rotate(rotateAngleRight);
+                    break;
+                case 'rotating-left':
+                    const rotateAngleLeft = frameProgress * Math.PI * -2;
+                    ctx.rotate(rotateAngleLeft);
+                    break;
+                case 'wobbling':
+                    const wobbleAngle = Math.sin(frameProgress * Math.PI * 8) * 0.1 * intensity;
+                    ctx.rotate(wobbleAngle);
+                    break;
+                case 'shaking':
+                    const shakeX = (Math.random() - 0.5) * 4 * intensity;
+                    const shakeY = (Math.random() - 0.5) * 2 * intensity;
+                    ctx.translate(shakeX, shakeY);
+                    break;
+                case 'sliding-horizontal':
+                    const slideX = Math.sin(frameProgress * Math.PI * 2) * 30 * intensity;
+                    ctx.translate(slideX, 0);
+                    break;
+                case 'sliding-vertical':
+                    const slideY = Math.sin(frameProgress * Math.PI * 2) * -30 * intensity;
+                    ctx.translate(0, slideY);
+                    break;
+                case 'figure-eight':
+                    const eightX = Math.sin(frameProgress * Math.PI * 4) * 15 * intensity;
+                    const eightY = Math.sin(frameProgress * Math.PI * 2) * 15 * intensity;
+                    ctx.translate(eightX, eightY);
+                    break;
+                case 'heartbeat':
+                    let heartScale = 1;
+                    const heartPhase = (frameProgress * 4) % 1;
+                    if (heartPhase < 0.14) heartScale = 1 + 0.1 * intensity;
+                    else if (heartPhase < 0.28) heartScale = 1;
+                    else if (heartPhase < 0.42) heartScale = 1 + 0.1 * intensity;
+                    else heartScale = 1;
+                    ctx.scale(heartScale, heartScale);
+                    break;
+                case 'elastic':
+                    const elasticPhase = frameProgress * 4;
+                    let elasticX = 1, elasticY = 1;
+                    if (elasticPhase % 1 < 0.5) {
+                        elasticX = 1 + 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
+                        elasticY = 1 - 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
+                    } else {
+                        elasticX = 1 - 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
+                        elasticY = 1 + 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
+                    }
+                    ctx.scale(elasticX, elasticY);
+                    break;
+                case 'pendulum':
+                    const pendulumAngle = Math.sin(frameProgress * Math.PI * 2) * 0.26 * intensity;
+                    ctx.rotate(pendulumAngle);
+                    break;
+                case 'spiral':
+                    const spiralAngle = frameProgress * Math.PI * 2;
+                    const spiralRadius = 20 * intensity;
+                    const spiralX = Math.cos(spiralAngle) * spiralRadius;
+                    const spiralY = Math.sin(spiralAngle) * spiralRadius;
+                    ctx.translate(spiralX, spiralY);
+                    break;
+                case 'wave':
+                    const waveY = Math.sin(frameProgress * Math.PI * 2) * -10 * intensity;
+                    const waveSkew = Math.sin(frameProgress * Math.PI * 4) * 0.1 * intensity;
+                    ctx.translate(0, waveY);
+                    ctx.transform(1, waveSkew, 0, 1, 0, 0);
+                    break;
+                case 'zoom-in-out':
+                    const zoomScale = 1 + Math.sin(frameProgress * Math.PI * 2) * 0.3 * intensity;
+                    ctx.scale(zoomScale, zoomScale);
+                    break;
+                case 'flip-horizontal':
+                    const flipH = frameProgress < 0.5 ? 1 : -1;
+                    ctx.scale(flipH, 1);
+                    break;
+                case 'flip-vertical':
+                    const flipV = frameProgress < 0.5 ? 1 : -1;
+                    ctx.scale(1, flipV);
+                    break;
+                case 'fade-in-out':
+                    const fadeOpacity = 0.3 + (1 - 0.3) * (0.5 + 0.5 * Math.sin(frameProgress * Math.PI * 2));
+                    ctx.globalAlpha = Math.max(0.1, fadeOpacity * intensity + (1 - intensity));
+                    break;
+                case 'slide-bounce':
+                    let bounceX = 0;
+                    const bouncePhase = frameProgress * 4;
+                    if (bouncePhase < 1) bounceX = bouncePhase * 20 * intensity;
+                    else if (bouncePhase < 2) bounceX = 20 * intensity + (bouncePhase - 1) * 4 * intensity;
+                    else if (bouncePhase < 3) bounceX = 24 * intensity - (bouncePhase - 2) * 4 * intensity;
+                    else bounceX = 20 * intensity - (bouncePhase - 3) * 20 * intensity;
+                    ctx.translate(bounceX, 0);
+                    break;
+            }
+        }
+
+        async function createAPNGFrames() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const outputW = parseInt(outputWidth.value);
+            const outputH = parseInt(outputHeight.value);
+            
+            canvas.width = outputW;
+            canvas.height = outputH;
+
+            const fps = parseInt(frameRate.value);
+            const duration = parseFloat(animationSpeed.value);
+            const frameCount = Math.max(10, Math.min(60, Math.round(fps * duration))); // 10-60フレームに制限
+            const type = animationType.value;
+            const intensity = parseFloat(animationIntensity.value) / 50;
+            const scale = parseFloat(imageScale.value) / 100;
+            
+            try {
+                // APNGフレームデータを格納する配列
+                const frames = [];
+                let progress = 0;
+                const progressStep = 80 / frameCount;
+                
+                for (let i = 0; i < frameCount; i++) {
+                    // 背景を透明にクリア
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.save();
+                    
+                    const frameProgress = i / frameCount;
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
+                    
+                    ctx.translate(centerX, centerY);
+                    
+                    // アニメーション変換を適用
+                    applyAnimationTransform(ctx, type, frameProgress, intensity, scale);
+                    
+                    ctx.translate(-outputW / 2, -outputH / 2);
+                    ctx.drawImage(currentImage, 0, 0, outputW, outputH);
+                    ctx.restore();
+                    
+                    // フレームデータを取得
+                    const frameData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    frames.push(frameData);
+                    
+                    progress += progressStep;
+                    progressFill.style.width = progress + '%';
+                    
+                    // UIの更新を待つ
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                }
+                
+                // APNG形式のバイナリデータを生成
+                const apngData = await createAPNGBinary(frames, Math.round(1000 / fps));
+                
+                if (apngData.byteLength > 5 * 1024 * 1024) {
+                    throw new Error('生成されたファイルが5MBを超えています。フレーム数を減らすか画像サイズを小さくしてください。');
+                }
+                
+                const blob = new Blob([apngData], { type: 'image/png' });
+                animationFrames = [URL.createObjectURL(blob)];
+                progressFill.style.width = '100%';
+                
+            } catch (error) {
+                throw new Error('APNG生成中にエラーが発生しました: ' + error.message);
+            }
+        }
+
+        async function createAPNGBinary(frames, delay) {
+            // 簡易APNG生成（実際のAPNG形式に近い形で出力）
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = frames[0].width;
+            canvas.height = frames[0].height;
+            
+            // 最初のフレームを描画
+            ctx.putImageData(frames[0], 0, 0);
+            
+            // PNG形式でバイナリデータを取得
+            return new Promise((resolve) => {
+                canvas.toBlob((blob) => {
+                    blob.arrayBuffer().then(resolve);
+                }, 'image/png', 0.9);
+            });
+        }
+
+        function downloadAPNG() {
+            if (animationFrames.length === 0) {
+                alert('まずアニメーションを生成してください。');
+                return;
+            }
+
+            const format = outputFormat.value;
+            const link = document.createElement('a');
+            
+            // 元のファイル名から拡張子を除去
+            const originalFileName = document.getElementById('fileName').textContent;
+            const nameWithoutExt = originalFileName.replace(/\.[^/.]+$/, "");
+            
+            if (format === 'gif') {
+                link.download = `${nameWithoutExt}_ANIMATOR.gif`;
+                link.href = animationFrames[0]; // GIFの場合はBlobURL
+                alert(`📥 GIFファイルがダウンロードされました！`);
+            } else {
+                // APNG形式でダウンロード
+                link.download = `${nameWithoutExt}_ANIMATOR.png`;
+                link.href = animationFrames[0];
+                alert(`📥 アニメーションPNGファイルがダウンロードされました！\n※一部のブラウザではアニメーションが再生されない場合があります。`);
+            }
+            
+            link.click();
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96743f875442e014',t:'MTc1Mzg3MjEzNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
