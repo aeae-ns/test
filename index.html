@@ -1103,7 +1103,7 @@
             document.getElementById('imageSize').textContent = `${img.width} × ${img.height}px（元サイズ）`;
             
             const fileSizeMB = Math.round(file.size / 1024 / 1024 * 100) / 100;
-            document.getElementById('estimatedSize').textContent = `元画像: ${fileSizeMB}MB（出力ファイルは自動で5MB以下に最適化されます）`;
+            document.getElementById('estimatedSize').textContent = `元画像: ${fileSizeMB}MB（5MB以下で出力可能）`;
             
             fileInfo.style.display = 'block';
         }
