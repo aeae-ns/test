@@ -121,7 +121,7 @@ function getEasingFunction() {
     }
 }
 
-// applyAnimation関数（微修正: ctx.globalAlphaリセット追加）
+// applyAnimation関数（追加: globalAlphaリセットを強化）
 function applyAnimation(transformTime, width, height) {
     const easeFunc = getEasingFunction();
     const eased = easeFunc((transformTime % 1));
@@ -206,10 +206,10 @@ function applyAnimation(transformTime, width, height) {
     ctx.translate(-width / 2, -height / 2); // 元に戻す
 if (animationType === 'フェードイン・アウト') {
         ctx.globalAlpha = Math.abs(Math.sin(transformTime * 2 * Math.PI)) * (1 - intensity) + intensity;
+    } else {
+        ctx.globalAlpha = 1; // 透過喪失防止
     }
     ctx.translate(-width / 2, -height / 2);
-    // 描画前にglobalAlphaリセット（静止画防止）
-    if (animationType !== 'フェードイン・アウト') ctx.globalAlpha = 1;
 }
 
 
@@ -229,45 +229,47 @@ function updatePreview() {
     animate();
 }
 
-// 生成ボタン: フレームキャプチャ（微修正: restore()をループ外に移動防止）
+// 生成ボタン: フレームキャプチャ（修正: 各フレームでsave/restoreを独立）
 generateButton.addEventListener('click', () => {
     if (!uploadedImage) return alert('PNGをアップロードしてください');
     const totalFrames = Math.round(fps * animationSpeed);
     const frameDelayMs = 1000 / fps;
     const frames = [];
     for (let i = 0; i < totalFrames; i++) {
+        ctx.save(); // 各フレームでsave
         const progress = i / totalFrames;
         const transformTime = progress + delay / animationSpeed;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         applyAnimation(transformTime, canvas.width, canvas.height);
         ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
-        ctx.restore(); // ここでrestore（save/restoreペア）
+        ctx.restore(); // 各フレームでrestore
         const frameData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         frames.push(frameData);
     }
     exportAnimation(frames, frameDelayMs, totalFrames);
 });
 
-// エクスポート関数（修正: workerScript, copy: true, dither, ArrayBuffer変換）
+// エクスポート関数（修正: GIFにtransparent追加、APNGにpremultiply処理）
 function exportAnimation(frames, frameDelayMs, totalFrames) {
     const width = canvas.width;
     const height = canvas.height;
     const gifQualityMap = { '高品質': 10, '標準品質': 20, '低品質': 30 };
     const repeat = loop === Infinity ? 0 : loop - 1;
 
-if (outputFormat === 'GIF') {
-    const gif = new GIF({
-        workers: 2,
-        quality: gifQualityMap[quality],
-        repeat: repeat,
-        width: width,
-        height: height,
-        workerScript: 'gif.worker.js',  // ローカルパスに変更
-        dither: colorLimit < 256 ? 'FloydSteinberg-serpentine' : false,
-        debug: true
-    });
+    if (outputFormat === 'GIF') {
+        const gif = new GIF({
+            workers: 2,
+            quality: gifQualityMap[quality],
+            repeat: repeat,
+            width: width,
+            height: height,
+            workerScript: 'gif.worker.js',
+            dither: colorLimit < 256 ? 'FloydSteinberg-serpentine' : false,
+            transparent: 0x000000, // 黒を透過色に指定（PNG透過部が黒背景の場合調整）
+            debug: true
+        });
         frames.forEach((frameData) => {
-            gif.addFrame(frameData, { delay: frameDelayMs, copy: true, dispose: -1 }); // copy: true追加（データコピー）
+            gif.addFrame(frameData, { delay: frameDelayMs, copy: true, dispose: -1 });
         });
         gif.on('finished', (blob) => {
             if (blob) {
@@ -276,13 +278,24 @@ if (outputFormat === 'GIF') {
                 console.error('GIF生成失敗: blobがnull');
             }
         });
-        gif.on('progress', (p) => console.log('GIF進捗: ' + p)); // 進捗ログ
+        gif.on('progress', (p) => console.log('GIF進捗: ' + p));
         gif.render();
     } else if (outputFormat === 'APNG') {
-        const frameBuffers = frames.map((frameData) => frameData.data.buffer); // ArrayBufferに変換（RGBA）
-        const delays = new Array(totalFrames).fill(frameDelayMs); // delays配列（ms単位）
+        const frameBuffers = frames.map((frameData) => {
+            const data = frameData.data;
+            // Premultiply alpha for transparency preservation during quantization
+            for (let i = 0; i < data.length; i += 4) {
+                const alpha = data[i + 3] / 255;
+                data[i] = Math.round(data[i] * alpha);     // R
+                data[i + 1] = Math.round(data[i + 1] * alpha); // G
+                data[i + 2] = Math.round(data[i + 2] * alpha); // B
+                // Alpha remains as is
+            }
+            return data.buffer; // ArrayBuffer (premultiplied RGBA)
+        });
+        const delays = new Array(totalFrames).fill(frameDelayMs);
         try {
-            const apngBuffer = UPNG.encode(frameBuffers, width, height, colorLimit === 256 ? 0 : colorLimit, delays); // cnum=0でlossless
+            const apngBuffer = UPNG.encode(frameBuffers, width, height, colorLimit === 256 ? 0 : colorLimit, delays);
             const blob = new Blob([apngBuffer], { type: 'image/apng' });
             downloadFile(blob, 'animation.apng');
         } catch (e) {
