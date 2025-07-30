@@ -422,243 +422,6 @@
                 flex-wrap: wrap;
             }
         }
-
-        /* アニメーション定義 */
-        .floating-animation {
-            animation: float var(--animation-duration, 3s) ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: scale(var(--base-scale, 1)) translateY(0px); }
-            50% { transform: scale(var(--base-scale, 1)) translateY(var(--float-distance, -10px)); }
-        }
-
-        .breathing-animation {
-            animation: breathe var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes breathe {
-            0%, 100% { transform: scale(var(--base-scale, 1)); }
-            50% { transform: scale(var(--breathe-scale, 1.05)); }
-        }
-
-        .swaying-animation {
-            animation: sway var(--animation-duration, 4s) ease-in-out infinite;
-        }
-
-        @keyframes sway {
-            0%, 100% { transform: scale(var(--base-scale, 1)) rotate(0deg); }
-            25% { transform: scale(var(--base-scale, 1)) rotate(var(--sway-angle, 2deg)); }
-            75% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--sway-angle, 2deg) * -1)); }
-        }
-
-        .bouncing-animation {
-            animation: bounce var(--animation-duration, 1s) ease-in-out infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: scale(var(--base-scale, 1)) translateY(0px); }
-            50% { transform: scale(var(--base-scale, 1)) translateY(var(--bounce-height, -20px)); }
-        }
-
-        .pulsing-animation {
-            animation: pulse var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(var(--base-scale, 1)); }
-            50% { opacity: var(--pulse-opacity, 0.8); transform: scale(var(--pulse-scale, 1.1)); }
-        }
-
-        .rotating-right-animation {
-            animation: rotate-right var(--animation-duration, 10s) linear infinite;
-        }
-
-        @keyframes rotate-right {
-            0% { transform: scale(var(--base-scale, 1)) rotate(0deg); }
-            100% { transform: scale(var(--base-scale, 1)) rotate(360deg); }
-        }
-
-        .rotating-left-animation {
-            animation: rotate-left var(--animation-duration, 10s) linear infinite;
-        }
-
-        @keyframes rotate-left {
-            0% { transform: scale(var(--base-scale, 1)) rotate(0deg); }
-            100% { transform: scale(var(--base-scale, 1)) rotate(-360deg); }
-        }
-
-        .wobbling-animation {
-            animation: wobble var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes wobble {
-            0%, 100% { transform: scale(var(--base-scale, 1)) rotate(0deg); }
-            15% { transform: scale(var(--base-scale, 1)) rotate(var(--wobble-angle, 5deg)); }
-            30% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--wobble-angle, 5deg) * -1)); }
-            45% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--wobble-angle, 5deg) * 0.7)); }
-            60% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--wobble-angle, 5deg) * -0.7)); }
-            75% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--wobble-angle, 5deg) * 0.3)); }
-        }
-
-        .shaking-animation {
-            animation: shake var(--animation-duration, 0.5s) ease-in-out infinite;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: scale(var(--base-scale, 1)) translate(0px, 0px); }
-            10% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), var(--shake-y, 1px)); }
-            20% { transform: scale(var(--base-scale, 1)) translate(calc(var(--shake-x, 2px) * -1), var(--shake-y, 1px)); }
-            30% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), calc(var(--shake-y, 1px) * -1)); }
-            40% { transform: scale(var(--base-scale, 1)) translate(calc(var(--shake-x, 2px) * -1), calc(var(--shake-y, 1px) * -1)); }
-            50% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), var(--shake-y, 1px)); }
-            60% { transform: scale(var(--base-scale, 1)) translate(calc(var(--shake-x, 2px) * -1), calc(var(--shake-y, 1px) * -1)); }
-            70% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), calc(var(--shake-y, 1px) * -1)); }
-            80% { transform: scale(var(--base-scale, 1)) translate(calc(var(--shake-x, 2px) * -1), var(--shake-y, 1px)); }
-            90% { transform: scale(var(--base-scale, 1)) translate(var(--shake-x, 2px), var(--shake-y, 1px)); }
-        }
-
-        .sliding-horizontal-animation {
-            animation: slide-horizontal var(--animation-duration, 3s) ease-in-out infinite;
-        }
-
-        @keyframes slide-horizontal {
-            0%, 100% { transform: scale(var(--base-scale, 1)) translateX(0px); }
-            50% { transform: scale(var(--base-scale, 1)) translateX(var(--slide-distance, 30px)); }
-        }
-
-        .sliding-vertical-animation {
-            animation: slide-vertical var(--animation-duration, 3s) ease-in-out infinite;
-        }
-
-        @keyframes slide-vertical {
-            0%, 100% { transform: scale(var(--base-scale, 1)) translateY(0px); }
-            50% { transform: scale(var(--base-scale, 1)) translateY(var(--slide-distance, -30px)); }
-        }
-
-        .figure-eight-animation {
-            animation: figure-eight var(--animation-duration, 4s) ease-in-out infinite;
-        }
-
-        @keyframes figure-eight {
-            0% { transform: scale(var(--base-scale, 1)) translate(0px, 0px); }
-            12.5% { transform: scale(var(--base-scale, 1)) translate(var(--eight-size, 15px), calc(var(--eight-size, 15px) * -0.5)); }
-            25% { transform: scale(var(--base-scale, 1)) translate(0px, calc(var(--eight-size, 15px) * -1)); }
-            37.5% { transform: scale(var(--base-scale, 1)) translate(calc(var(--eight-size, 15px) * -1), calc(var(--eight-size, 15px) * -0.5)); }
-            50% { transform: scale(var(--base-scale, 1)) translate(0px, 0px); }
-            62.5% { transform: scale(var(--base-scale, 1)) translate(calc(var(--eight-size, 15px) * -1), calc(var(--eight-size, 15px) * 0.5)); }
-            75% { transform: scale(var(--base-scale, 1)) translate(0px, var(--eight-size, 15px)); }
-            87.5% { transform: scale(var(--base-scale, 1)) translate(var(--eight-size, 15px), calc(var(--eight-size, 15px) * 0.5)); }
-            100% { transform: scale(var(--base-scale, 1)) translate(0px, 0px); }
-        }
-
-        .heartbeat-animation {
-            animation: heartbeat var(--animation-duration, 1s) ease-in-out infinite;
-        }
-
-        @keyframes heartbeat {
-            0%, 100% { transform: scale(var(--base-scale, 1)); }
-            14% { transform: scale(calc(var(--base-scale, 1) * var(--heartbeat-scale, 1.1))); }
-            28% { transform: scale(var(--base-scale, 1)); }
-            42% { transform: scale(calc(var(--base-scale, 1) * var(--heartbeat-scale, 1.1))); }
-            70% { transform: scale(var(--base-scale, 1)); }
-        }
-
-        .elastic-animation {
-            animation: elastic var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes elastic {
-            0%, 100% { transform: scale(var(--base-scale, 1)) scaleX(1); }
-            25% { transform: scale(var(--base-scale, 1)) scaleX(var(--elastic-x, 1.2)) scaleY(var(--elastic-y, 0.8)); }
-            50% { transform: scale(var(--base-scale, 1)) scaleX(var(--elastic-y, 0.8)) scaleY(var(--elastic-x, 1.2)); }
-            75% { transform: scale(var(--base-scale, 1)) scaleX(var(--elastic-x, 1.2)) scaleY(var(--elastic-y, 0.8)); }
-        }
-
-        .pendulum-animation {
-            animation: pendulum var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes pendulum {
-            0%, 100% { transform: scale(var(--base-scale, 1)) rotate(var(--pendulum-angle, 15deg)); }
-            50% { transform: scale(var(--base-scale, 1)) rotate(calc(var(--pendulum-angle, 15deg) * -1)); }
-        }
-
-        .spiral-animation {
-            animation: spiral var(--animation-duration, 3s) linear infinite;
-        }
-
-        @keyframes spiral {
-            0% { transform: scale(var(--base-scale, 1)) rotate(0deg) translateX(0px) rotate(0deg); }
-            100% { transform: scale(var(--base-scale, 1)) rotate(360deg) translateX(var(--spiral-radius, 20px)) rotate(-360deg); }
-        }
-
-        .wave-animation {
-            animation: wave var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes wave {
-            0%, 100% { transform: scale(var(--base-scale, 1)) translateY(0px) skewX(0deg); }
-            25% { transform: scale(var(--base-scale, 1)) translateY(calc(var(--wave-height, -10px) * 0.7)) skewX(var(--wave-skew, 5deg)); }
-            50% { transform: scale(var(--base-scale, 1)) translateY(var(--wave-height, -10px)) skewX(0deg); }
-            75% { transform: scale(var(--base-scale, 1)) translateY(calc(var(--wave-height, -10px) * 0.7)) skewX(calc(var(--wave-skew, 5deg) * -1)); }
-        }
-
-        .zoom-in-out-animation {
-            animation: zoom-in-out var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes zoom-in-out {
-            0%, 100% { transform: scale(var(--base-scale, 1)); }
-            50% { transform: scale(calc(var(--base-scale, 1) * var(--zoom-scale, 1.3))); }
-        }
-
-        .flip-horizontal-animation {
-            animation: flip-horizontal var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes flip-horizontal {
-            0%, 100% { transform: scale(var(--base-scale, 1)) scaleX(1); }
-            50% { transform: scale(var(--base-scale, 1)) scaleX(-1); }
-        }
-
-        .flip-vertical-animation {
-            animation: flip-vertical var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes flip-vertical {
-            0%, 100% { transform: scale(var(--base-scale, 1)) scaleY(1); }
-            50% { transform: scale(var(--base-scale, 1)) scaleY(-1); }
-        }
-
-        .typewriter-animation {
-            animation: typewriter var(--animation-duration, 3s) steps(10) infinite;
-        }
-
-        @keyframes typewriter {
-            0% { transform: scale(var(--base-scale, 1)); clip-path: inset(0 100% 0 0); }
-            100% { transform: scale(var(--base-scale, 1)); clip-path: inset(0 0 0 0); }
-        }
-
-        .fade-in-out-animation {
-            animation: fade-in-out var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes fade-in-out {
-            0%, 100% { transform: scale(var(--base-scale, 1)); opacity: var(--fade-min, 0.3); }
-            50% { transform: scale(var(--base-scale, 1)); opacity: 1; }
-        }
-
-        .slide-bounce-animation {
-            animation: slide-bounce var(--animation-duration, 2s) ease-in-out infinite;
-        }
-
-        @keyframes slide-bounce {
-            0%, 100% { transform: scale(var(--base-scale, 1)) translateX(0px); }
-            25% { transform: scale(var(--base-scale, 1)) translateX(var(--slide-bounce-distance, 20px)); }
-            50% { transform: scale(var(--base-scale, 1)) translateX(calc(var(--slide-bounce-distance, 20px) * 1.2)); }
-            75% { transform: scale(var(--base-scale, 1)) translateX(var(--slide-bounce-distance, 20px)); }
-        }
     </style>
 </head>
 <body>
@@ -880,6 +643,7 @@
         let originalWidth = 0;
         let originalHeight = 0;
         let aspectRatioLocked = true;
+        let animationId = null;
 
         // DOM要素の取得
         const previewContainer = document.getElementById('previewContainer');
@@ -930,8 +694,8 @@
         previewContainer.addEventListener('drop', handleDrop);
         previewContainer.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', handleFileSelect);
-        generateBtn.addEventListener('click', generateAPNG);
-        downloadBtn.addEventListener('click', downloadAPNG);
+        generateBtn.addEventListener('click', generateAnimation);
+        downloadBtn.addEventListener('click', downloadAnimation);
         resetBtn.addEventListener('click', resetAnimation);
         deleteBtn.addEventListener('click', deleteImage);
 
@@ -1027,11 +791,16 @@
 
         function displayPreview(img) {
             previewContainer.innerHTML = '';
-            const previewImg = img.cloneNode();
-            previewImg.className = 'preview-image floating-animation';
-            previewImg.style.maxWidth = '100%';
-            previewImg.style.maxHeight = '100%';
-            previewContainer.appendChild(previewImg);
+            
+            // キャンバスを作成してアニメーション表示
+            animationCanvas = document.createElement('canvas');
+            animationCanvas.className = 'preview-image';
+            animationCanvas.style.maxWidth = '100%';
+            animationCanvas.style.maxHeight = '100%';
+            
+            previewContainer.appendChild(animationCanvas);
+            animationContext = animationCanvas.getContext('2d');
+            
             updatePreview();
         }
 
@@ -1049,6 +818,7 @@
                 outputHeight.value = newHeight;
             }
             updateCurrentSizeDisplay();
+            updatePreview();
         }
 
         function handleHeightChange() {
@@ -1058,6 +828,7 @@
                 outputWidth.value = newWidth;
             }
             updateCurrentSizeDisplay();
+            updatePreview();
         }
 
         function toggleAspectRatio() {
@@ -1078,6 +849,7 @@
                 outputWidth.value = originalWidth;
                 outputHeight.value = originalHeight;
                 updateCurrentSizeDisplay();
+                updatePreview();
             }
         }
 
@@ -1088,102 +860,210 @@
         }
 
         function updatePreviewScale() {
-            const previewImg = previewContainer.querySelector('.preview-image');
-            if (previewImg) {
-                const scale = imageScale.value / 100;
-                previewImg.style.setProperty('--base-scale', scale);
-            }
+            updatePreview();
         }
 
         function updatePreview() {
-            const previewImg = previewContainer.querySelector('.preview-image');
-            if (previewImg) {
-                const type = animationType.value;
-                const speed = animationSpeed.value;
-                const intensity = animationIntensity.value;
-                const delay = animationDelay.value;
-                const easing = easingType.value;
-                const loop = loopType.value;
-                const scale = imageScale.value / 100;
+            if (!currentImage || !animationContext) return;
+            
+            // アニメーションを停止
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            const width = parseInt(outputWidth.value) || originalWidth;
+            const height = parseInt(outputHeight.value) || originalHeight;
+            const scale = parseFloat(imageScale.value) / 100;
+            
+            animationCanvas.width = width;
+            animationCanvas.height = height;
+            
+            let startTime = performance.now();
+            
+            function animate() {
+                const elapsed = (performance.now() - startTime) / 1000;
+                const speed = parseFloat(animationSpeed.value);
+                const delay = parseFloat(animationDelay.value);
+                const progress = ((elapsed + delay) / speed) % 1;
                 
-                // アニメーションクラスをリセット
-                previewImg.className = 'preview-image';
+                animationContext.clearRect(0, 0, width, height);
+                animationContext.save();
                 
-                // CSS変数を設定
-                previewImg.style.setProperty('--animation-duration', speed + 's');
-                previewImg.style.setProperty('--animation-delay', delay + 's');
-                previewImg.style.animationTimingFunction = easing;
-                previewImg.style.animationIterationCount = loop;
-                previewImg.style.setProperty('--base-scale', scale);
+                applyTransform(animationContext, progress, width, height, scale);
+                animationContext.drawImage(currentImage, 0, 0, width, height);
                 
-                // 強度に応じてアニメーションパラメータを調整
-                const intensityFactor = intensity / 50;
+                animationContext.restore();
                 
-                switch(type) {
-                    case 'floating':
-                        previewImg.style.setProperty('--float-distance', (-10 * intensityFactor) + 'px');
-                        break;
-                    case 'breathing':
-                        previewImg.style.setProperty('--breathe-scale', (1 + 0.05 * intensityFactor));
-                        break;
-                    case 'swaying':
-                        previewImg.style.setProperty('--sway-angle', (2 * intensityFactor) + 'deg');
-                        break;
-                    case 'bouncing':
-                        previewImg.style.setProperty('--bounce-height', (-20 * intensityFactor) + 'px');
-                        break;
-                    case 'pulsing':
-                        previewImg.style.setProperty('--pulse-opacity', Math.max(0.3, 1 - 0.2 * intensityFactor));
-                        previewImg.style.setProperty('--pulse-scale', (1 + 0.1 * intensityFactor));
-                        break;
-                    case 'wobbling':
-                        previewImg.style.setProperty('--wobble-angle', (5 * intensityFactor) + 'deg');
-                        break;
-                    case 'shaking':
-                        previewImg.style.setProperty('--shake-x', (2 * intensityFactor) + 'px');
-                        previewImg.style.setProperty('--shake-y', (1 * intensityFactor) + 'px');
-                        break;
-                    case 'sliding-horizontal':
-                        previewImg.style.setProperty('--slide-distance', (30 * intensityFactor) + 'px');
-                        break;
-                    case 'sliding-vertical':
-                        previewImg.style.setProperty('--slide-distance', (-30 * intensityFactor) + 'px');
-                        break;
-                    case 'figure-eight':
-                        previewImg.style.setProperty('--eight-size', (15 * intensityFactor) + 'px');
-                        break;
-                    case 'heartbeat':
-                        previewImg.style.setProperty('--heartbeat-scale', (1 + 0.1 * intensityFactor));
-                        break;
-                    case 'elastic':
-                        previewImg.style.setProperty('--elastic-x', (1 + 0.2 * intensityFactor));
-                        previewImg.style.setProperty('--elastic-y', (1 - 0.2 * intensityFactor));
-                        break;
-                    case 'pendulum':
-                        previewImg.style.setProperty('--pendulum-angle', (15 * intensityFactor) + 'deg');
-                        break;
-                    case 'spiral':
-                        previewImg.style.setProperty('--spiral-radius', (20 * intensityFactor) + 'px');
-                        break;
-                    case 'wave':
-                        previewImg.style.setProperty('--wave-height', (-10 * intensityFactor) + 'px');
-                        previewImg.style.setProperty('--wave-skew', (5 * intensityFactor) + 'deg');
-                        break;
-                    case 'zoom-in-out':
-                        previewImg.style.setProperty('--zoom-scale', (1 + 0.3 * intensityFactor));
-                        break;
-                    case 'fade-in-out':
-                        previewImg.style.setProperty('--fade-min', Math.max(0.1, 1 - 0.7 * intensityFactor));
-                        break;
-                    case 'slide-bounce':
-                        previewImg.style.setProperty('--slide-bounce-distance', (20 * intensityFactor) + 'px');
-                        break;
-                }
-                
-                // アニメーションクラスを適用
-                setTimeout(() => {
-                    previewImg.classList.add(type + '-animation');
-                }, 10);
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+
+        function applyTransform(ctx, progress, width, height, scale) {
+            const type = animationType.value;
+            const intensity = parseFloat(animationIntensity.value) / 100;
+            const easing = getEasingFunction(easingType.value);
+            const easedProgress = easing(progress);
+            
+            ctx.translate(width / 2, height / 2);
+            ctx.scale(scale, scale);
+            
+            switch(type) {
+                case 'floating':
+                    const floatY = Math.sin(progress * Math.PI * 2) * 10 * intensity;
+                    ctx.translate(0, floatY);
+                    break;
+                    
+                case 'breathing':
+                    const breathScale = 1 + Math.sin(progress * Math.PI * 2) * 0.05 * intensity;
+                    ctx.scale(breathScale, breathScale);
+                    break;
+                    
+                case 'swaying':
+                    const swayAngle = Math.sin(progress * Math.PI * 2) * 0.05 * intensity;
+                    ctx.rotate(swayAngle);
+                    break;
+                    
+                case 'bouncing':
+                    const bounceY = Math.abs(Math.sin(progress * Math.PI * 2)) * -20 * intensity;
+                    ctx.translate(0, bounceY);
+                    break;
+                    
+                case 'pulsing':
+                    const pulseScale = 1 + Math.sin(progress * Math.PI * 2) * 0.1 * intensity;
+                    ctx.scale(pulseScale, pulseScale);
+                    break;
+                    
+                case 'rotating-right':
+                    ctx.rotate(progress * Math.PI * 2);
+                    break;
+                    
+                case 'rotating-left':
+                    ctx.rotate(-progress * Math.PI * 2);
+                    break;
+                    
+                case 'wobbling':
+                    const wobbleAngle = Math.sin(progress * Math.PI * 8) * 0.1 * intensity;
+                    ctx.rotate(wobbleAngle);
+                    break;
+                    
+                case 'shaking':
+                    const shakeX = (Math.random() - 0.5) * 4 * intensity;
+                    const shakeY = (Math.random() - 0.5) * 2 * intensity;
+                    ctx.translate(shakeX, shakeY);
+                    break;
+                    
+                case 'sliding-horizontal':
+                    const slideX = Math.sin(progress * Math.PI * 2) * 30 * intensity;
+                    ctx.translate(slideX, 0);
+                    break;
+                    
+                case 'sliding-vertical':
+                    const slideY = Math.sin(progress * Math.PI * 2) * -30 * intensity;
+                    ctx.translate(0, slideY);
+                    break;
+                    
+                case 'figure-eight':
+                    const eightX = Math.sin(progress * Math.PI * 4) * 15 * intensity;
+                    const eightY = Math.sin(progress * Math.PI * 2) * 15 * intensity;
+                    ctx.translate(eightX, eightY);
+                    break;
+                    
+                case 'heartbeat':
+                    let heartScale = 1;
+                    const heartPhase = (progress * 4) % 1;
+                    if (heartPhase < 0.14) heartScale = 1 + 0.1 * intensity;
+                    else if (heartPhase < 0.28) heartScale = 1;
+                    else if (heartPhase < 0.42) heartScale = 1 + 0.1 * intensity;
+                    else heartScale = 1;
+                    ctx.scale(heartScale, heartScale);
+                    break;
+                    
+                case 'elastic':
+                    const elasticPhase = progress * 4;
+                    let elasticX = 1, elasticY = 1;
+                    if (elasticPhase % 1 < 0.5) {
+                        elasticX = 1 + 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
+                        elasticY = 1 - 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
+                    } else {
+                        elasticX = 1 - 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
+                        elasticY = 1 + 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
+                    }
+                    ctx.scale(elasticX, elasticY);
+                    break;
+                    
+                case 'pendulum':
+                    const pendulumAngle = Math.sin(progress * Math.PI * 2) * 0.26 * intensity;
+                    ctx.rotate(pendulumAngle);
+                    break;
+                    
+                case 'spiral':
+                    const spiralAngle = progress * Math.PI * 2;
+                    const spiralRadius = 20 * intensity;
+                    const spiralX = Math.cos(spiralAngle) * spiralRadius;
+                    const spiralY = Math.sin(spiralAngle) * spiralRadius;
+                    ctx.translate(spiralX, spiralY);
+                    break;
+                    
+                case 'wave':
+                    const waveY = Math.sin(progress * Math.PI * 2) * -10 * intensity;
+                    const waveSkew = Math.sin(progress * Math.PI * 4) * 0.1 * intensity;
+                    ctx.translate(0, waveY);
+                    ctx.transform(1, waveSkew, 0, 1, 0, 0);
+                    break;
+                    
+                case 'zoom-in-out':
+                    const zoomScale = 1 + Math.sin(progress * Math.PI * 2) * 0.3 * intensity;
+                    ctx.scale(zoomScale, zoomScale);
+                    break;
+                    
+                case 'flip-horizontal':
+                    const flipH = progress < 0.5 ? 1 : -1;
+                    ctx.scale(flipH, 1);
+                    break;
+                    
+                case 'flip-vertical':
+                    const flipV = progress < 0.5 ? 1 : -1;
+                    ctx.scale(1, flipV);
+                    break;
+                    
+                case 'fade-in-out':
+                    const fadeOpacity = 0.3 + (1 - 0.3) * (0.5 + 0.5 * Math.sin(progress * Math.PI * 2));
+                    ctx.globalAlpha = Math.max(0.1, fadeOpacity * intensity + (1 - intensity));
+                    break;
+                    
+                case 'slide-bounce':
+                    let bounceX = 0;
+                    const bouncePhase = progress * 4;
+                    if (bouncePhase < 1) bounceX = bouncePhase * 20 * intensity;
+                    else if (bouncePhase < 2) bounceX = 20 * intensity + (bouncePhase - 1) * 4 * intensity;
+                    else if (bouncePhase < 3) bounceX = 24 * intensity - (bouncePhase - 2) * 4 * intensity;
+                    else bounceX = 20 * intensity - (bouncePhase - 3) * 20 * intensity;
+                    ctx.translate(bounceX, 0);
+                    break;
+            }
+            
+            ctx.translate(-width / 2, -height / 2);
+        }
+
+        function getEasingFunction(easing) {
+            switch(easing) {
+                case 'linear':
+                    return t => t;
+                case 'ease-in':
+                    return t => t * t;
+                case 'ease-out':
+                    return t => t * (2 - t);
+                case 'ease-in-out':
+                    return t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                case 'cubic-bezier(0.68, -0.55, 0.265, 1.55)':
+                    return t => {
+                        if (t < 0.5) return 2 * t * t;
+                        return -1 + (4 - 2 * t) * t;
+                    };
+                default:
+                    return t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
             }
         }
 
@@ -1203,6 +1083,12 @@
 
         function deleteImage() {
             if (confirm('画像を削除しますか？')) {
+                // アニメーションを停止
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                
                 // 画像とデータをリセット
                 currentImage = null;
                 animationFrames = [];
@@ -1233,7 +1119,7 @@
             }
         }
 
-        async function generateAPNG() {
+        async function generateAnimation() {
             if (!currentImage) {
                 alert('❌ 画像をアップロードしてください。');
                 return;
@@ -1249,7 +1135,7 @@
                 if (format === 'gif') {
                     await createGIF();
                 } else {
-                    await createAPNGFrames();
+                    await createAPNG();
                 }
                 
                 progressFill.style.width = '100%';
@@ -1261,7 +1147,7 @@
                     downloadBtn.style.display = 'block';
                     generateBtn.disabled = false;
                     
-                    const formatName = format === 'gif' ? 'GIF' : 'PNG';
+                    const formatName = format === 'gif' ? 'GIF' : 'APNG';
                     alert(`🎉 ${formatName}生成が完了しました！\nダウンロードボタンからファイルを保存できます。`);
                 }, 500);
                 
@@ -1277,7 +1163,7 @@
                 } else if (error.message.includes('GIF')) {
                     errorMessage = '❌ GIF生成に失敗しました。画像サイズを小さくするか、色数を減らしてください。';
                 } else if (error.message.includes('APNG')) {
-                    errorMessage = '❌ PNG生成に失敗しました。画像サイズが大きすぎる可能性があります。';
+                    errorMessage = '❌ APNG生成に失敗しました。画像サイズが大きすぎる可能性があります。';
                 }
                 
                 alert(errorMessage);
@@ -1287,9 +1173,9 @@
         async function createGIF() {
             const fps = parseInt(frameRate.value);
             const duration = parseFloat(animationSpeed.value);
-            const frameCount = Math.max(10, Math.min(60, Math.round(fps * duration))); // 10-60フレームに制限
+            const frameCount = Math.max(10, Math.min(60, Math.round(fps * duration)));
             const type = animationType.value;
-            const intensity = parseFloat(animationIntensity.value) / 50;
+            const intensity = parseFloat(animationIntensity.value) / 100;
             const colors = parseInt(colorCount.value);
             const outputW = parseInt(outputWidth.value);
             const outputH = parseInt(outputHeight.value);
@@ -1302,8 +1188,9 @@
                     width: outputW,
                     height: outputH,
                     repeat: loopType.value === 'infinite' ? 0 : parseInt(loopType.value),
-                    colors: colors,
-                    dither: false
+                    dither: false,
+                    transparent: null,
+                    workerScript: 'gif.worker.js'
                 });
                 
                 const canvas = document.createElement('canvas');
@@ -1315,20 +1202,12 @@
                 const progressStep = 80 / frameCount;
                 
                 for (let i = 0; i < frameCount; i++) {
-                    // 背景を透明にクリア
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.save();
                     
                     const frameProgress = i / frameCount;
-                    const centerX = canvas.width / 2;
-                    const centerY = canvas.height / 2;
                     
-                    ctx.translate(centerX, centerY);
-                    
-                    // アニメーション変換を適用
-                    applyAnimationTransform(ctx, type, frameProgress, intensity, scale);
-                    
-                    ctx.translate(-outputW / 2, -outputH / 2);
+                    applyTransform(ctx, frameProgress, outputW, outputH, scale);
                     ctx.drawImage(currentImage, 0, 0, outputW, outputH);
                     ctx.restore();
                     
@@ -1363,169 +1242,37 @@
             }
         }
 
-        function applyAnimationTransform(ctx, type, frameProgress, intensity, scale = 1) {
-            // 基本スケールを適用
-            ctx.scale(scale, scale);
-            switch(type) {
-                case 'floating':
-                    const offsetY = Math.sin(frameProgress * Math.PI * 2) * 10 * intensity;
-                    ctx.translate(0, offsetY);
-                    break;
-                case 'breathing':
-                    const breatheScale = 1 + Math.sin(frameProgress * Math.PI * 2) * 0.05 * intensity;
-                    ctx.scale(breatheScale, breatheScale);
-                    break;
-                case 'swaying':
-                    const rotation = Math.sin(frameProgress * Math.PI * 2) * 0.05 * intensity;
-                    ctx.rotate(rotation);
-                    break;
-                case 'bouncing':
-                    const bounceY = Math.abs(Math.sin(frameProgress * Math.PI * 2)) * -20 * intensity;
-                    ctx.translate(0, bounceY);
-                    break;
-                case 'pulsing':
-                    const pulseScale = 1 + Math.sin(frameProgress * Math.PI * 2) * 0.1 * intensity;
-                    ctx.scale(pulseScale, pulseScale);
-                    break;
-                case 'rotating-right':
-                    const rotateAngleRight = frameProgress * Math.PI * 2;
-                    ctx.rotate(rotateAngleRight);
-                    break;
-                case 'rotating-left':
-                    const rotateAngleLeft = frameProgress * Math.PI * -2;
-                    ctx.rotate(rotateAngleLeft);
-                    break;
-                case 'wobbling':
-                    const wobbleAngle = Math.sin(frameProgress * Math.PI * 8) * 0.1 * intensity;
-                    ctx.rotate(wobbleAngle);
-                    break;
-                case 'shaking':
-                    const shakeX = (Math.random() - 0.5) * 4 * intensity;
-                    const shakeY = (Math.random() - 0.5) * 2 * intensity;
-                    ctx.translate(shakeX, shakeY);
-                    break;
-                case 'sliding-horizontal':
-                    const slideX = Math.sin(frameProgress * Math.PI * 2) * 30 * intensity;
-                    ctx.translate(slideX, 0);
-                    break;
-                case 'sliding-vertical':
-                    const slideY = Math.sin(frameProgress * Math.PI * 2) * -30 * intensity;
-                    ctx.translate(0, slideY);
-                    break;
-                case 'figure-eight':
-                    const eightX = Math.sin(frameProgress * Math.PI * 4) * 15 * intensity;
-                    const eightY = Math.sin(frameProgress * Math.PI * 2) * 15 * intensity;
-                    ctx.translate(eightX, eightY);
-                    break;
-                case 'heartbeat':
-                    let heartScale = 1;
-                    const heartPhase = (frameProgress * 4) % 1;
-                    if (heartPhase < 0.14) heartScale = 1 + 0.1 * intensity;
-                    else if (heartPhase < 0.28) heartScale = 1;
-                    else if (heartPhase < 0.42) heartScale = 1 + 0.1 * intensity;
-                    else heartScale = 1;
-                    ctx.scale(heartScale, heartScale);
-                    break;
-                case 'elastic':
-                    const elasticPhase = frameProgress * 4;
-                    let elasticX = 1, elasticY = 1;
-                    if (elasticPhase % 1 < 0.5) {
-                        elasticX = 1 + 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
-                        elasticY = 1 - 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
-                    } else {
-                        elasticX = 1 - 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
-                        elasticY = 1 + 0.2 * intensity * Math.sin(elasticPhase * Math.PI * 2);
-                    }
-                    ctx.scale(elasticX, elasticY);
-                    break;
-                case 'pendulum':
-                    const pendulumAngle = Math.sin(frameProgress * Math.PI * 2) * 0.26 * intensity;
-                    ctx.rotate(pendulumAngle);
-                    break;
-                case 'spiral':
-                    const spiralAngle = frameProgress * Math.PI * 2;
-                    const spiralRadius = 20 * intensity;
-                    const spiralX = Math.cos(spiralAngle) * spiralRadius;
-                    const spiralY = Math.sin(spiralAngle) * spiralRadius;
-                    ctx.translate(spiralX, spiralY);
-                    break;
-                case 'wave':
-                    const waveY = Math.sin(frameProgress * Math.PI * 2) * -10 * intensity;
-                    const waveSkew = Math.sin(frameProgress * Math.PI * 4) * 0.1 * intensity;
-                    ctx.translate(0, waveY);
-                    ctx.transform(1, waveSkew, 0, 1, 0, 0);
-                    break;
-                case 'zoom-in-out':
-                    const zoomScale = 1 + Math.sin(frameProgress * Math.PI * 2) * 0.3 * intensity;
-                    ctx.scale(zoomScale, zoomScale);
-                    break;
-                case 'flip-horizontal':
-                    const flipH = frameProgress < 0.5 ? 1 : -1;
-                    ctx.scale(flipH, 1);
-                    break;
-                case 'flip-vertical':
-                    const flipV = frameProgress < 0.5 ? 1 : -1;
-                    ctx.scale(1, flipV);
-                    break;
-                case 'fade-in-out':
-                    const fadeOpacity = 0.3 + (1 - 0.3) * (0.5 + 0.5 * Math.sin(frameProgress * Math.PI * 2));
-                    ctx.globalAlpha = Math.max(0.1, fadeOpacity * intensity + (1 - intensity));
-                    break;
-                case 'slide-bounce':
-                    let bounceX = 0;
-                    const bouncePhase = frameProgress * 4;
-                    if (bouncePhase < 1) bounceX = bouncePhase * 20 * intensity;
-                    else if (bouncePhase < 2) bounceX = 20 * intensity + (bouncePhase - 1) * 4 * intensity;
-                    else if (bouncePhase < 3) bounceX = 24 * intensity - (bouncePhase - 2) * 4 * intensity;
-                    else bounceX = 20 * intensity - (bouncePhase - 3) * 20 * intensity;
-                    ctx.translate(bounceX, 0);
-                    break;
-            }
-        }
-
-        async function createAPNGFrames() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const outputW = parseInt(outputWidth.value);
-            const outputH = parseInt(outputHeight.value);
-            
-            canvas.width = outputW;
-            canvas.height = outputH;
-
+        async function createAPNG() {
             const fps = parseInt(frameRate.value);
             const duration = parseFloat(animationSpeed.value);
-            const frameCount = Math.max(10, Math.min(60, Math.round(fps * duration))); // 10-60フレームに制限
-            const type = animationType.value;
-            const intensity = parseFloat(animationIntensity.value) / 50;
+            const frameCount = Math.max(10, Math.min(60, Math.round(fps * duration)));
+            const outputW = parseInt(outputWidth.value);
+            const outputH = parseInt(outputHeight.value);
             const scale = parseFloat(imageScale.value) / 100;
             
             try {
-                // APNGフレームデータを格納する配列
-                const frames = [];
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = outputW;
+                canvas.height = outputH;
+
+                const frameBuffers = [];
                 let progress = 0;
                 const progressStep = 80 / frameCount;
                 
                 for (let i = 0; i < frameCount; i++) {
-                    // 背景を透明にクリア
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     ctx.save();
                     
                     const frameProgress = i / frameCount;
-                    const centerX = canvas.width / 2;
-                    const centerY = canvas.height / 2;
                     
-                    ctx.translate(centerX, centerY);
-                    
-                    // アニメーション変換を適用
-                    applyAnimationTransform(ctx, type, frameProgress, intensity, scale);
-                    
-                    ctx.translate(-outputW / 2, -outputH / 2);
+                    applyTransform(ctx, frameProgress, outputW, outputH, scale);
                     ctx.drawImage(currentImage, 0, 0, outputW, outputH);
                     ctx.restore();
                     
                     // フレームデータを取得
-                    const frameData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    frames.push(frameData);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    frameBuffers.push(imageData.data.buffer);
                     
                     progress += progressStep;
                     progressFill.style.width = progress + '%';
@@ -1535,7 +1282,8 @@
                 }
                 
                 // APNG形式のバイナリデータを生成
-                const apngData = await createAPNGBinary(frames, Math.round(1000 / fps));
+                const delays = new Array(frameCount).fill(Math.round(1000 / fps));
+                const apngData = UPNG.encode(frameBuffers, outputW, outputH, 0, delays);
                 
                 if (apngData.byteLength > 5 * 1024 * 1024) {
                     throw new Error('生成されたファイルが5MBを超えています。フレーム数を減らすか画像サイズを小さくしてください。');
@@ -1550,25 +1298,7 @@
             }
         }
 
-        async function createAPNGBinary(frames, delay) {
-            // 簡易APNG生成（実際のAPNG形式に近い形で出力）
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = frames[0].width;
-            canvas.height = frames[0].height;
-            
-            // 最初のフレームを描画
-            ctx.putImageData(frames[0], 0, 0);
-            
-            // PNG形式でバイナリデータを取得
-            return new Promise((resolve) => {
-                canvas.toBlob((blob) => {
-                    blob.arrayBuffer().then(resolve);
-                }, 'image/png', 0.9);
-            });
-        }
-
-        function downloadAPNG() {
+        function downloadAnimation() {
             if (animationFrames.length === 0) {
                 alert('まずアニメーションを生成してください。');
                 return;
@@ -1583,10 +1313,9 @@
             
             if (format === 'gif') {
                 link.download = `${nameWithoutExt}_ANIMATOR.gif`;
-                link.href = animationFrames[0]; // GIFの場合はBlobURL
+                link.href = animationFrames[0];
                 alert(`📥 GIFファイルがダウンロードされました！`);
             } else {
-                // APNG形式でダウンロード
                 link.download = `${nameWithoutExt}_ANIMATOR.png`;
                 link.href = animationFrames[0];
                 alert(`📥 アニメーションPNGファイルがダウンロードされました！\n※一部のブラウザではアニメーションが再生されない場合があります。`);
@@ -1595,5 +1324,5 @@
             link.click();
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96743f875442e014',t:'MTc1Mzg3MjEzNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
