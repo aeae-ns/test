@@ -255,17 +255,17 @@ function exportAnimation(frames, frameDelayMs, totalFrames) {
     const gifQualityMap = { '高品質': 10, '標準品質': 20, '低品質': 30 };
     const repeat = loop === Infinity ? 0 : loop - 1;
 
-    if (outputFormat === 'GIF') {
-        const gif = new GIF({
-            workers: 2,
-            quality: gifQualityMap[quality],
-            repeat: repeat,
-            width: width,
-            height: height,
-            workerScript: 'https://cdn.jsdelivr.net/gh/jnordberg/gif.js@master/dist/gif.worker.js', // 追加: Workerロード
-            dither: colorLimit < 256 ? 'FloydSteinberg-serpentine' : false, // 色制限でディザリング
-            debug: true // デバッグオン（コンソールでエラー確認）
-        });
+if (outputFormat === 'GIF') {
+    const gif = new GIF({
+        workers: 2,
+        quality: gifQualityMap[quality],
+        repeat: repeat,
+        width: width,
+        height: height,
+        workerScript: 'gif.worker.js',  // ローカルパスに変更
+        dither: colorLimit < 256 ? 'FloydSteinberg-serpentine' : false,
+        debug: true
+    });
         frames.forEach((frameData) => {
             gif.addFrame(frameData, { delay: frameDelayMs, copy: true, dispose: -1 }); // copy: true追加（データコピー）
         });
