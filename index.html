@@ -373,29 +373,55 @@
         }
 
         .file-tips {
-            margin-top: 16px;
-            padding-top: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
             border-top: 1px solid #e2e8f0;
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: flex-start;
         }
 
         .tips-icon {
-            font-size: 1rem;
+            font-size: 0.9rem;
             flex-shrink: 0;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         .tips-content {
-            font-size: 0.75rem;
-            line-height: 1.5;
+            font-size: 0.7rem;
+            line-height: 1.4;
             color: #64748b;
         }
 
-        .tips-content strong {
+        .tips-title {
             color: #475569;
-            font-size: 0.8rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .tips-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .tips-item {
+            font-size: 0.7rem;
+            color: #64748b;
+            position: relative;
+            padding-left: 8px;
+        }
+
+        .tips-item::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #94a3b8;
+            font-weight: bold;
         }
 
         .file-info-item {
@@ -671,12 +697,14 @@
                     <div class="file-tips">
                         <div class="tips-icon">💡</div>
                         <div class="tips-content">
-                            <strong>出力できない場合の対処法:</strong><br>
-                            • 出力サイズを小さくする<br>
-                            • フレームレートを下げる（15FPS推奨）<br>
-                            • 複雑なアニメーションを避ける<br>
-                            • 色数制限を下げる（64色以下）<br>
-                            • 画像サイズ調整で縮小する
+                            <span class="tips-title">出力できない場合の対処法:</span>
+                            <div class="tips-list">
+                                <span class="tips-item">出力サイズを小さくする</span>
+                                <span class="tips-item">フレームレートを下げる(15FPS推奨)</span>
+                                <span class="tips-item">複雑なアニメーションを避ける</span>
+                                <span class="tips-item">色数制限を下げる(64色以下)</span>
+                                <span class="tips-item">画像サイズ調整で縮小する</span>
+                            </div>
                         </div>
                     </div>
                 </div>
