@@ -372,6 +372,32 @@
             display: none;
         }
 
+        .file-tips {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .tips-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .tips-content {
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: #64748b;
+        }
+
+        .tips-content strong {
+            color: #475569;
+            font-size: 0.8rem;
+        }
+
         .file-info-item {
             display: flex;
             justify-content: space-between;
@@ -604,6 +630,17 @@
                     <div class="file-info-item">
                         <span>推定ファイルサイズ:</span>
                         <span id="estimatedSize">-</span>
+                    </div>
+                    <div class="file-tips">
+                        <div class="tips-icon">💡</div>
+                        <div class="tips-content">
+                            <strong>出力できない場合の対処法:</strong><br>
+                            • 出力サイズを小さくする<br>
+                            • フレームレートを下げる（15FPS推奨）<br>
+                            • 複雑なアニメーションを避ける<br>
+                            • 色数制限を下げる（64色以下）<br>
+                            • 画像サイズ調整で縮小する
+                        </div>
                     </div>
                 </div>
             </div>
