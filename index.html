@@ -110,34 +110,17 @@
             font-weight: 600;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 12px;
         }
 
-        .preview-container {
-            min-height: 400px;
-            background: 
-                linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
-                linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
-                linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            border: 2px dashed #ced4da;
-            border-radius: 16px;
+        .section-title-left {
             display: flex;
             align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            gap: 12px;
         }
 
         .preview-toggle {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            z-index: 10;
             opacity: 0.6;
             transition: opacity 0.2s ease;
         }
@@ -688,21 +671,22 @@
         <div class="main-content">
             <div class="preview-section">
                 <h2 class="section-title">
-                    <span>✦</span>
-                    Preview
+                    <div class="section-title-left">
+                        <span>✦</span>
+                        Preview
+                    </div>
+                    <div class="preview-toggle" id="previewToggle" style="display: none;">
+                        <label class="preview-toggle-label">
+                            <input type="checkbox" id="fitToScreen" class="preview-toggle-checkbox">
+                            <span class="preview-toggle-text">画面内に収める</span>
+                        </label>
+                    </div>
                 </h2>
                 
                 <div class="preview-container" id="previewContainer">
                     <div class="preview-placeholder">
                         <div class="upload-icon">+</div>
                         <p>PNGファイルをドラッグ&ドロップ<br>またはクリックしてアップロード</p>
-                    </div>
-                    
-                    <div class="preview-toggle" id="previewToggle" style="display: none;">
-                        <label class="preview-toggle-label">
-                            <input type="checkbox" id="fitToScreen" class="preview-toggle-checkbox">
-                            <span class="preview-toggle-text">画面内に収める</span>
-                        </label>
                     </div>
                 </div>
 
@@ -1120,8 +1104,7 @@
             
             previewContainer.appendChild(animationCanvas);
             
-            // プレビュートグルを追加
-            previewContainer.appendChild(previewToggle);
+            // プレビュートグルを表示
             previewToggle.style.display = 'block';
             
             animationContext = animationCanvas.getContext('2d');
@@ -1532,14 +1515,10 @@
                         <div class="upload-icon">+</div>
                         <p>PNGファイルをドラッグ&ドロップ<br>またはクリックしてアップロード</p>
                     </div>
-                    
-                    <div class="preview-toggle" id="previewToggle" style="display: none;">
-                        <label class="preview-toggle-label">
-                            <input type="checkbox" id="fitToScreen" class="preview-toggle-checkbox">
-                            <span class="preview-toggle-text">画面内に収める</span>
-                        </label>
-                    </div>
                 `;
+                
+                // プレビュートグルを非表示
+                previewToggle.style.display = 'none';
                 
                 // UI要素を初期状態に戻す
                 fileInfo.style.display = 'none';
@@ -1553,12 +1532,6 @@
                 
                 // ファイル入力をクリア
                 fileInput.value = '';
-                
-                // イベントリスナーを再設定
-                const newFitToScreenCheckbox = document.getElementById('fitToScreen');
-                if (newFitToScreenCheckbox) {
-                    newFitToScreenCheckbox.addEventListener('change', handleFitToScreenChange);
-                }
             }
         }
 
