@@ -514,25 +514,6 @@
             transition: all 0.3s ease;
         }
 
-        .help-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-            border: 1px solid #94a3b8;
-            border-radius: 50%;
-            color: #64748b;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: help;
-            margin-left: 6px;
-            transition: all 0.2s ease;
-            position: relative;
-            vertical-align: middle;
-            transform: translateY(-2px);
-        }
 
         .help-icon:hover {
             background: linear-gradient(135deg, #cbd5e1, #94a3b8);
@@ -541,73 +522,6 @@
             transform: translateY(-2px) scale(1.05);
         }
 
-        .tooltip {
-            position: fixed;
-            background: rgba(255, 255, 255, 0.98);
-            color: #1e293b;
-            border: 1px solid #cbd5e1;
-            padding: 16px 20px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(20px);
-            max-width: 320px;
-            text-align: left;
-            pointer-events: none;
-        }
-
-        .tooltip::after {
-            display: none;
-        }
-
-        .help-icon:hover .tooltip {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .control-label-with-help {
-            display: flex;
-            align-items: center;
-        }
-
-        .tooltip-title {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-
-        .tooltip-item {
-            margin-bottom: 6px;
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
-        }
-
-        .tooltip-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .tooltip-bullet {
-            color: #64748b;
-            font-weight: 600;
-            margin-top: 1px;
-            flex-shrink: 0;
-        }
-
-        .tooltip-label {
-            font-weight: 600;
-            color: #475569;
-        }
-
-        .tooltip-desc {
-            color: #64748b;
-        }
 
         @media (max-width: 1024px) {
             .main-content {
@@ -665,6 +579,54 @@
         display: none !important;
     }
 }
+/* ─────────────────────────── */
+/* ツールチップコンテナ */
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 6px;
+}
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; height: 18px;
+    background: #e9ecef;
+    border: 1px solid #cbd5e1;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: help;
+    line-height: 1;
+}
+/* 初期は隠す */
+.tooltip-content {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.98);
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: #1e293b;
+    white-space: normal;
+    width: 200px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+    z-index: 10;
+}
+/* hover で表示 */
+.tooltip-container:hover .tooltip-content {
+    opacity: 1;
+    visibility: visible;
+}
+
     </style>
 </head>
 <body>
@@ -820,9 +782,21 @@
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label class="control-label">イージング</label>
-                        <select class="control-select" id="easingType">
+    <div class="control-group">
+        <label class="control-label">
+            イージング
+            <span class="tooltip-container">
+                <span class="help-icon">?</span>
+                <div class="tooltip-content">
+                    <strong>イージングとは</strong><br>
+                    • linear：一定速度で変化<br>
+                    • ease-in：開始はゆっくり→終盤で加速<br>
+                    • ease-out：開始は速く→終盤で減速<br>
+                    • ease-in-out：ゆっくり→加速→減速
+                </div>
+            </span>
+        </label>
+        <select class="control-select" id="easingType">
                             <option value="ease-in-out">スムーズ (ease-in-out)</option>
                             <option value="linear">リニア (linear)</option>
                             <option value="ease-in">イーズイン (ease-in)</option>
