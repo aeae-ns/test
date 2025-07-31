@@ -659,14 +659,12 @@
 }
 
 /* ─────────────────────────── */
-/* スマホサイズ（768px以下）のとき、タイトル下に下げる */
+/* スマホでは隠す */
 @media (max-width: 768px) {
     .fit-toggle {
-        /* Previewセクションのpadding(32px) + タイトル行の高さ(約24px) + margin-bottom(24px) を考慮 */
-        top: 80px; /* 必要に応じて微調整してください */
+        display: none !important;
     }
 }
-
     </style>
 </head>
 <body>
