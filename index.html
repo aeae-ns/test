@@ -675,6 +675,7 @@
         let originalHeight = 0;
         let aspectRatioLocked = true;
         let animationId = null;
+        let loop = 0; // 0 = 無限ループ（GIF/APNG共通）
 
         // DOM要素の取得
         const previewContainer = document.getElementById('previewContainer');
@@ -1103,7 +1104,7 @@
             document.getElementById('imageSize').textContent = `${img.width} × ${img.height}px（元サイズ）`;
             
             const fileSizeMB = Math.round(file.size / 1024 / 1024 * 100) / 100;
-            document.getElementById('estimatedSize').textContent = `元画像: ${fileSizeMB}MB（5MB以下で出力可能）`;
+            document.getElementById('estimatedSize').textContent = `元画像: ${fileSizeMB}MB（出力ファイルは自動で5MB以下に最適化されます）`;
             
             fileInfo.style.display = 'block';
         }
@@ -1216,12 +1217,18 @@
                 // 透過色を事前に決定（固定でマゼンタ使用）
                 const transparentRGB = {r: 255, g: 0, b: 255}; // マゼンタ
                 
+                // ループ回数を正しく設定
+                let repeatCount = 0; // デフォルトは無限ループ
+                if (loopType.value !== 'infinite') {
+                    repeatCount = parseInt(loopType.value) - 1; // GIFでは実際の回数-1を指定
+                }
+                
                 const gif = new GIF({
                     workers: 2,
                     quality: Math.max(1, qualityLevel.value === 'high' ? 1 : qualityLevel.value === 'medium' ? 5 : 10),
                     width: outputW,
                     height: outputH,
-                    repeat: loopType.value === 'infinite' ? 0 : parseInt(loopType.value),
+                    repeat: repeatCount, // 修正されたループ回数
                     dither: false,
                     workerScript: 'gif.worker.js',
                     debug: false,
@@ -1435,7 +1442,15 @@
                 
                 // APNG形式のバイナリデータを生成
                 const delays = new Array(frameCount).fill(Math.round(1000 / fps));
-                const apngData = UPNG.encode(frameBuffers, outputW, outputH, 0, delays);
+                
+                // APNGのループ設定
+                let apngLoops = 0; // デフォルトは無限ループ
+                if (loopType.value !== 'infinite') {
+                    apngLoops = parseInt(loopType.value);
+                }
+                
+                // UPNG.encodeの第4パラメータでループ回数を指定
+                const apngData = UPNG.encode(frameBuffers, outputW, outputH, apngLoops, delays);
                 
                 if (apngData.byteLength > 5 * 1024 * 1024) {
                     throw new Error('生成されたファイルが5MBを超えています。フレーム数を減らすか画像サイズを小さくしてください。');
