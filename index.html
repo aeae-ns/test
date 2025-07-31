@@ -6,8 +6,9 @@
     <title>GIF & APNG ANIMATOR</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="gif.js"></script>
+    <script src="UPNG.js"></script>
+    <script src="pako.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -369,10 +370,39 @@
             text-align: center;
         }
 
-        .size-input:focus {
-            outline: none;
-            border-color: #495057;
-            background: rgba(255, 255, 255, 1);
+        .aspect-ratio-btn {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            min-width: 40px;
+        }
+
+        .aspect-ratio-btn:hover {
+            background: linear-gradient(135deg, #475569, #334155);
+        }
+
+        .aspect-ratio-btn.unlocked {
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+        }
+
+        .reset-size-btn {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .reset-size-btn:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
         }
 
         @media (max-width: 1024px) {
@@ -424,9 +454,11 @@
                         <label>幅:</label>
                         <input type="number" id="outputWidth" class="size-input" min="50" max="1000" value="300">
                         <span>px</span>
-                        <label style="margin-left: 20px;">高さ:</label>
+                        <button id="aspectRatioBtn" class="aspect-ratio-btn" title="縦横比を固定">🔗</button>
+                        <label>高さ:</label>
                         <input type="number" id="outputHeight" class="size-input" min="50" max="1000" value="300">
                         <span>px</span>
+                        <button id="resetSizeBtn" class="reset-size-btn" title="元のサイズに戻す">↻</button>
                     </div>
                     <div style="font-size: 0.8rem; color: #64748b; margin-top: 8px;">
                         現在のサイズ: <span id="currentSizeDisplay">-</span>
@@ -602,148 +634,7 @@
 
     <!-- UPNGエンコーダー（簡易版） -->
     <script>
-        // 簡易UPNG実装（APNGエンコード用）
-        var UPNG = {
-            encode: function(bufs, w, h, ps, delays) {
-                // APNGの簡易実装
-                console.log('UPNG encode called with', bufs.length, 'frames');
-                
-                // PNG署名
-                var signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
-                
-                // 基本的なPNGヘッダー（IHDR）の作成
-                var ihdr = this._createIHDR(w, h);
-                
-                // フレームデータの処理
-                var chunks = [signature, ihdr];
-                
-                // 各フレームを処理
-                for (var i = 0; i < bufs.length; i++) {
-                    // フレームデータをIDATチャンクに変換
-                    var frameData = new Uint8Array(bufs[i]);
-                    var idat = this._createIDAT(frameData);
-                    chunks.push(idat);
-                }
-                
-                // IENDチャンク
-                var iend = new Uint8Array([0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
-                chunks.push(iend);
-                
-                // 全チャンクを結合
-                var totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-                var result = new Uint8Array(totalLength);
-                var offset = 0;
-                
-                for (var i = 0; i < chunks.length; i++) {
-                    result.set(chunks[i], offset);
-                    offset += chunks[i].length;
-                }
-                
-                return result.buffer;
-            },
-            
-            _createIHDR: function(w, h) {
-                // IHDR チャンクの作成（簡易版）
-                var data = new Uint8Array(25); // 4(length) + 4(type) + 13(data) + 4(crc)
-                
-                // Length (13 bytes)
-                data[0] = 0; data[1] = 0; data[2] = 0; data[3] = 13;
-                
-                // Type 'IHDR'
-                data[4] = 73; data[5] = 72; data[6] = 68; data[7] = 82;
-                
-                // Width (4 bytes, big-endian)
-                data[8] = (w >> 24) & 0xFF;
-                data[9] = (w >> 16) & 0xFF;
-                data[10] = (w >> 8) & 0xFF;
-                data[11] = w & 0xFF;
-                
-                // Height (4 bytes, big-endian)
-                data[12] = (h >> 24) & 0xFF;
-                data[13] = (h >> 16) & 0xFF;
-                data[14] = (h >> 8) & 0xFF;
-                data[15] = h & 0xFF;
-                
-                // Bit depth, Color type, Compression method, Filter method, Interlace method
-                data[16] = 8;  // 8-bit
-                data[17] = 6;  // RGBA
-                data[18] = 0;  // deflate
-                data[19] = 0;  // adaptive filtering
-                data[20] = 0;  // no interlace
-                
-                // CRC (簡易計算)
-                var crc = this._crc32(data.slice(4, 21));
-                data[21] = (crc >> 24) & 0xFF;
-                data[22] = (crc >> 16) & 0xFF;
-                data[23] = (crc >> 8) & 0xFF;
-                data[24] = crc & 0xFF;
-                
-                return data;
-            },
-            
-            _createIDAT: function(frameData) {
-                // 簡易IDAT作成（実際にはDeflate圧縮が必要）
-                var compressed = this._deflate(frameData);
-                var length = compressed.length;
-                var chunk = new Uint8Array(length + 12);
-                
-                // Length
-                chunk[0] = (length >> 24) & 0xFF;
-                chunk[1] = (length >> 16) & 0xFF;
-                chunk[2] = (length >> 8) & 0xFF;
-                chunk[3] = length & 0xFF;
-                
-                // Type 'IDAT'
-                chunk[4] = 73; chunk[5] = 68; chunk[6] = 65; chunk[7] = 84;
-                
-                // Data
-                chunk.set(compressed, 8);
-                
-                // CRC
-                var crc = this._crc32(chunk.slice(4, 8 + length));
-                chunk[8 + length] = (crc >> 24) & 0xFF;
-                chunk[9 + length] = (crc >> 16) & 0xFF;
-                chunk[10 + length] = (crc >> 8) & 0xFF;
-                chunk[11 + length] = crc & 0xFF;
-                
-                return chunk;
-            },
-            
-            _deflate: function(data) {
-                // pakoライブラリを使用してDeflate圧縮
-                if (typeof pako !== 'undefined') {
-                    return pako.deflate(data);
-                }
-                // pakoが利用できない場合は生データを返す（非推奨）
-                return data;
-            },
-            
-            _crc32: function(data) {
-                // CRC32計算（簡易版）
-                var crc = 0xFFFFFFFF;
-                var table = this._getCrcTable();
-                
-                for (var i = 0; i < data.length; i++) {
-                    crc = (crc >>> 8) ^ table[(crc ^ data[i]) & 0xFF];
-                }
-                
-                return (crc ^ 0xFFFFFFFF) >>> 0;
-            },
-            
-            _getCrcTable: function() {
-                if (!this._crcTable) {
-                    this._crcTable = new Uint32Array(256);
-                    for (var i = 0; i < 256; i++) {
-                        var c = i;
-                        for (var j = 0; j < 8; j++) {
-                            c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-                        }
-                        this._crcTable[i] = c;
-                    }
-                }
-                return this._crcTable;
-            }
-        };
+        // 元のUPNG.jsを使用するため、ここは削除
     </script>
 
     <script>
@@ -753,6 +644,7 @@
         let animationFrames = [];
         let originalWidth = 0;
         let originalHeight = 0;
+        let aspectRatioLocked = true;
         let animationId = null;
 
         // DOM要素の取得
@@ -780,6 +672,8 @@
         const qualityLevel = document.getElementById('qualityLevel');
         const outputWidth = document.getElementById('outputWidth');
         const outputHeight = document.getElementById('outputHeight');
+        const aspectRatioBtn = document.getElementById('aspectRatioBtn');
+        const resetSizeBtn = document.getElementById('resetSizeBtn');
         const currentSizeDisplay = document.getElementById('currentSizeDisplay');
 
         // 値表示要素
@@ -805,8 +699,10 @@
         deleteBtn.addEventListener('click', deleteImage);
 
         // サイズ調整イベント
-        outputWidth.addEventListener('input', handleSizeChange);
-        outputHeight.addEventListener('input', handleSizeChange);
+        outputWidth.addEventListener('input', handleWidthChange);
+        outputHeight.addEventListener('input', handleHeightChange);
+        aspectRatioBtn.addEventListener('click', toggleAspectRatio);
+        resetSizeBtn.addEventListener('click', resetToOriginalSize);
 
         // コントロールイベント
         animationType.addEventListener('change', updatePreview);
@@ -911,6 +807,48 @@
             sizeControls.style.display = 'block';
             uploadPrompt.style.display = 'none';
             generateBtn.disabled = false;
+        }
+
+        function handleWidthChange() {
+            if (aspectRatioLocked && originalWidth && originalHeight) {
+                const newWidth = parseInt(outputWidth.value);
+                const newHeight = Math.round((newWidth / originalWidth) * originalHeight);
+                outputHeight.value = newHeight;
+            }
+            updateCurrentSizeDisplay();
+            updatePreview();
+        }
+
+        function handleHeightChange() {
+            if (aspectRatioLocked && originalWidth && originalHeight) {
+                const newHeight = parseInt(outputHeight.value);
+                const newWidth = Math.round((newHeight / originalHeight) * originalWidth);
+                outputWidth.value = newWidth;
+            }
+            updateCurrentSizeDisplay();
+            updatePreview();
+        }
+
+        function toggleAspectRatio() {
+            aspectRatioLocked = !aspectRatioLocked;
+            if (aspectRatioLocked) {
+                aspectRatioBtn.textContent = '🔗';
+                aspectRatioBtn.classList.remove('unlocked');
+                aspectRatioBtn.title = '縦横比を固定';
+            } else {
+                aspectRatioBtn.textContent = '🔓';
+                aspectRatioBtn.classList.add('unlocked');
+                aspectRatioBtn.title = '縦横比を自由に変更';
+            }
+        }
+
+        function resetToOriginalSize() {
+            if (originalWidth && originalHeight) {
+                outputWidth.value = originalWidth;
+                outputHeight.value = originalHeight;
+                updateCurrentSizeDisplay();
+                updatePreview();
+            }
         }
 
         function handleSizeChange() {
@@ -1252,7 +1190,7 @@
                     width: outputW,
                     height: outputH,
                     repeat: 0,
-                    workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+                    workerScript: 'gif.worker.js'
                 });
                 
                 const canvas = document.createElement('canvas');
