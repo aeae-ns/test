@@ -665,6 +665,42 @@
         display: none !important;
     }
 }
+
+/* ─────────────────────────── */
+/* 生成中オーバーレイ */
+.loading-overlay {
+  position: absolute;
+  inset: 0;                   /* top/right/bottom/left = 0 */
+  background: rgba(255, 255, 255, 0.8);
+  display: none;              /* 初期は非表示 */
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 200;               /* 他要素より前面 */
+}
+
+/* CSSスピナー */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #d1d5db;
+  border-top-color: #475569;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ローディングテキスト */
+.loading-text {
+  margin-top: 12px;
+  font-size: 1rem;
+  color: #475569;
+  font-weight: 500;
+}
+
     </style>
 </head>
 <body>
@@ -749,6 +785,11 @@
                         </div>
                     </div>
                 </div>
+<!-- ローディングオーバーレイ -->
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">⏳ 処理中です…</div>
+</div>
             </div>
 
             <div class="controls-section">
@@ -1530,10 +1571,13 @@
         }
 
         async function generateAnimation() {
-            if (!currentImage) {
-                alert('❌ 画像をアップロードしてください。');
-                return;
-            }
+   if (!currentImage) {
+       alert('❌ 画像をアップロードしてください。');
+       return;
+   }
+   // ★生成開始：オーバーレイをON
+   const overlay = document.getElementById('loadingOverlay');
+   overlay.style.display = 'flex';
 
             progressBar.style.display = 'block';
             generateBtn.disabled = true;
@@ -1558,6 +1602,8 @@
                     
                     const formatName = format === 'gif' ? 'GIF' : 'APNG';
                     alert(`🎉 ${formatName}生成が完了しました！\nダウンロードボタンからファイルを保存できます。`);
+           // ★生成完了：オーバーレイをOFF
+           overlay.style.display = 'none';
                 }, 500);
                 
             } catch (error) {
@@ -1565,6 +1611,8 @@
                 progressBar.style.display = 'none';
                 progressFill.style.width = '0%';
                 generateBtn.disabled = false;
+       // ★エラー時もオーバーレイOFF
+       overlay.style.display = 'none';
                 
                 let errorMessage = '❌ 生成中にエラーが発生しました。';
                 if (error.message.includes('5MB')) {
