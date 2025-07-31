@@ -627,6 +627,31 @@
                 flex-wrap: wrap;
             }
         }
+/* ─────────────────────────── */
+/* Previewセクション右上の「画面内に収める」トグル */
+.fit-toggle {
+    position: absolute;
+    top: 24px;       /* 見出し下からの余白 */
+    right: 24px;     /* 右端からの余白 */
+}
+.fit-toggle label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+}
+.fit-toggle input[type="checkbox"] {
+    accent-color: #475569;
+    width: 16px;
+    height: 16px;
+}
+.fit-toggle span {
+    user-select: none;
+}
+
     </style>
 </head>
 <body>
@@ -642,7 +667,17 @@
                     <span>✦</span>
                     Preview
                 </h2>
-                
+                        <!-- ★ トグルを右上に絶対配置 -->
+        <div class="fit-toggle">
+            <label>
+                <input
+                    type="checkbox"
+                    id="fitToScreen"
+                    class="preview-checkbox"
+                >
+                <span>プレビューを画面内に収める</span>
+            </label>
+        </div>
                 <div class="preview-container" id="previewContainer">
                     <div class="preview-placeholder">
                         <div class="upload-icon">+</div>
@@ -667,13 +702,7 @@
                     <div style="font-size: 0.8rem; color: #64748b; margin-top: 8px;">
                         現在のサイズ: <span id="currentSizeDisplay">-</span>
                     </div>
-                    
-                    <div class="preview-options" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="fitToScreen" class="preview-checkbox">
-                            <span class="checkbox-text">プレビューを画面内に収める</span>
-                        </label>
-                    </div>
+                  
                 </div>
 
                 <div class="file-info" id="fileInfo">
@@ -1075,13 +1104,7 @@
             uploadPrompt.style.display = 'none';
             generateBtn.disabled = false;
             
-            // 大きな画像の場合はデフォルトでフィットモードをONに
-            if (originalWidth > 800 || originalHeight > 600) {
-                fitToScreenCheckbox.checked = true;
-                fitToScreen = true;
-                updatePreviewDisplay();
-            }
-            
+          
             updatePredictedOutputSize();
         }
 
