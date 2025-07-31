@@ -667,6 +667,13 @@
                     <div style="font-size: 0.8rem; color: #64748b; margin-top: 8px;">
                         現在のサイズ: <span id="currentSizeDisplay">-</span>
                     </div>
+                    
+                    <div class="preview-options" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="fitToScreen" class="preview-checkbox">
+                            <span class="checkbox-text">プレビューを画面内に収める</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="file-info" id="fileInfo">
@@ -783,7 +790,7 @@
                     </div>
 
                     <div class="control-group">
-                        <label class="control-label">色数制限: <span class="value-display" id="colorValue">128</span>色（容量削減用）</label>
+                        <label class="control-label">色数制限: <span class="value-display" id="colorValue">128</span>色（GIF）</label>
                         <div class="control-slider-group">
                             <button class="slider-btn decrease" onclick="adjustSlider('colorCount', -8)">−</button>
                             <div class="range-input-wrapper">
@@ -897,6 +904,7 @@
         let originalHeight = 0;
         let aspectRatioLocked = true;
         let animationId = null;
+        let fitToScreen = false;
 
         // DOM要素の取得
         const previewContainer = document.getElementById('previewContainer');
@@ -926,6 +934,7 @@
         const aspectRatioBtn = document.getElementById('aspectRatioBtn');
         const resetSizeBtn = document.getElementById('resetSizeBtn');
         const currentSizeDisplay = document.getElementById('currentSizeDisplay');
+        const fitToScreenCheckbox = document.getElementById('fitToScreen');
 
         // 値表示要素
         const speedValue = document.getElementById('speedValue');
@@ -954,6 +963,7 @@
         outputHeight.addEventListener('input', handleHeightChange);
         aspectRatioBtn.addEventListener('click', toggleAspectRatio);
         resetSizeBtn.addEventListener('click', resetToOriginalSize);
+        fitToScreenCheckbox.addEventListener('change', handleFitToScreenChange);
 
         // コントロールイベント
         animationType.addEventListener('change', () => { updatePreview(); updatePredictedOutputSize(); });
@@ -981,47 +991,6 @@
         frameRate.addEventListener('change', updatePredictedOutputSize);
         qualityLevel.addEventListener('change', updatePredictedOutputSize);
         outputFormat.addEventListener('change', updatePredictedOutputSize);
-
-        // ツールチップの位置調整
-        function positionTooltip(helpIcon) {
-            const tooltip = helpIcon.querySelector('.tooltip');
-            if (!tooltip) return;
-            
-            const rect = helpIcon.getBoundingClientRect();
-            const tooltipRect = tooltip.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            const viewportWidth = window.innerWidth;
-            
-            // 基本位置をマウスカーソルの近くに設定
-            let top = rect.top - tooltipRect.height - 10;
-            let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-            
-            // 画面上端からはみ出る場合は下に表示
-            if (top < 10) {
-                top = rect.bottom + 10;
-            }
-            
-            // 画面左端からはみ出る場合
-            if (left < 10) {
-                left = 10;
-            }
-            
-            // 画面右端からはみ出る場合
-            if (left + tooltipRect.width > viewportWidth - 10) {
-                left = viewportWidth - tooltipRect.width - 10;
-            }
-            
-            tooltip.style.top = top + 'px';
-            tooltip.style.left = left + 'px';
-        }
-
-        // ヘルプアイコンのイベント設定
-        document.addEventListener('DOMContentLoaded', function() {
-            const helpIcons = document.querySelectorAll('.help-icon');
-            helpIcons.forEach(icon => {
-                icon.addEventListener('mouseenter', () => positionTooltip(icon));
-            });
-        });
 
         function handleDragOver(e) {
             e.preventDefault();
@@ -1095,6 +1064,8 @@
             previewContainer.appendChild(animationCanvas);
             animationContext = animationCanvas.getContext('2d');
             
+            // 初期表示でフィット設定を適用
+            updatePreviewDisplay();
             updatePreview();
         }
 
@@ -1103,6 +1074,14 @@
             sizeControls.style.display = 'block';
             uploadPrompt.style.display = 'none';
             generateBtn.disabled = false;
+            
+            // 大きな画像の場合はデフォルトでフィットモードをONに
+            if (originalWidth > 800 || originalHeight > 600) {
+                fitToScreenCheckbox.checked = true;
+                fitToScreen = true;
+                updatePreviewDisplay();
+            }
+            
             updatePredictedOutputSize();
         }
 
@@ -1147,6 +1126,19 @@
                 outputHeight.value = originalHeight;
                 updateCurrentSizeDisplay();
                 updatePreview();
+            }
+        }
+
+        function handleFitToScreenChange() {
+            fitToScreen = fitToScreenCheckbox.checked;
+            updatePreviewDisplay();
+        }
+
+        function updatePreviewDisplay() {
+            if (fitToScreen) {
+                previewContainer.classList.add('fit-to-screen');
+            } else {
+                previewContainer.classList.remove('fit-to-screen');
             }
         }
 
