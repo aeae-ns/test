@@ -1135,10 +1135,24 @@
         }
 
         function updatePreviewDisplay() {
+            if (!animationCanvas) return;
+            
             if (fitToScreen) {
                 previewContainer.classList.add('fit-to-screen');
+                // キャンバスのスタイルを直接調整
+                animationCanvas.style.maxWidth = '100%';
+                animationCanvas.style.maxHeight = '400px';
+                animationCanvas.style.width = 'auto';
+                animationCanvas.style.height = 'auto';
+                animationCanvas.style.objectFit = 'contain';
             } else {
                 previewContainer.classList.remove('fit-to-screen');
+                // 元のスタイルに戻す
+                animationCanvas.style.maxWidth = '100%';
+                animationCanvas.style.maxHeight = '100%';
+                animationCanvas.style.width = '';
+                animationCanvas.style.height = '';
+                animationCanvas.style.objectFit = '';
             }
         }
 
