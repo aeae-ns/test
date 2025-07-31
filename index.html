@@ -492,8 +492,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
             border: 1px solid #94a3b8;
             border-radius: 50%;
@@ -501,9 +501,10 @@
             font-size: 0.7rem;
             font-weight: 600;
             cursor: help;
-            margin-left: 8px;
+            margin-left: 6px;
             transition: all 0.2s ease;
             position: relative;
+            vertical-align: middle;
         }
 
         .help-icon:hover {
@@ -515,24 +516,26 @@
 
         .tooltip {
             position: absolute;
-            bottom: 30px;
+            bottom: 28px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(30, 41, 59, 0.95);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            line-height: 1.4;
+            background: rgba(255, 255, 255, 0.98);
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            line-height: 1.6;
             white-space: nowrap;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
             z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            max-width: 300px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            max-width: 320px;
             white-space: normal;
+            text-align: left;
         }
 
         .tooltip::after {
@@ -543,9 +546,9 @@
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 6px solid rgba(30, 41, 59, 0.95);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid rgba(255, 255, 255, 0.98);
         }
 
         .help-icon:hover .tooltip {
@@ -556,6 +559,40 @@
         .control-label-with-help {
             display: flex;
             align-items: center;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .tooltip-item {
+            margin-bottom: 6px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .tooltip-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .tooltip-bullet {
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .tooltip-label {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .tooltip-desc {
+            color: #64748b;
         }
 
         @media (max-width: 1024px) {
@@ -719,13 +756,48 @@
                             <label class="control-label">イージング</label>
                             <span class="help-icon">?
                                 <div class="tooltip">
-                                    <strong>イージングとは？</strong><br>
-                                    アニメーションの速度変化のパターンです<br><br>
-                                    <strong>• スムーズ:</strong> 開始と終了がゆっくり<br>
-                                    <strong>• リニア:</strong> 一定の速度<br>
-                                    <strong>• イーズイン:</strong> 開始がゆっくり<br>
-                                    <strong>• イーズアウト:</strong> 終了がゆっくり<br>
-                                    <strong>• バウンス:</strong> 弾むような動き
+                                    <div class="tooltip-title">イージングとは？</div>
+                                    <div style="margin-bottom: 12px; color: #64748b;">アニメーションの速度変化のパターンです</div>
+                                    
+                                    <div class="tooltip-item">
+                                        <span class="tooltip-bullet">•</span>
+                                        <div>
+                                            <span class="tooltip-label">スムーズ:</span>
+                                            <span class="tooltip-desc">開始と終了がゆっくり</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tooltip-item">
+                                        <span class="tooltip-bullet">•</span>
+                                        <div>
+                                            <span class="tooltip-label">リニア:</span>
+                                            <span class="tooltip-desc">一定の速度</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tooltip-item">
+                                        <span class="tooltip-bullet">•</span>
+                                        <div>
+                                            <span class="tooltip-label">イーズイン:</span>
+                                            <span class="tooltip-desc">開始がゆっくり</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tooltip-item">
+                                        <span class="tooltip-bullet">•</span>
+                                        <div>
+                                            <span class="tooltip-label">イーズアウト:</span>
+                                            <span class="tooltip-desc">終了がゆっくり</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tooltip-item">
+                                        <span class="tooltip-bullet">•</span>
+                                        <div>
+                                            <span class="tooltip-label">バウンス:</span>
+                                            <span class="tooltip-desc">弾むような動き</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </span>
                         </div>
