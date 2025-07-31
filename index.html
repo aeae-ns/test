@@ -462,8 +462,74 @@
             transition: all 0.3s ease;
         }
 
-        .reset-size-btn:hover {
-            background: linear-gradient(135deg, #4b5563, #374151);
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+            border: 1px solid #94a3b8;
+            border-radius: 50%;
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: help;
+            margin-left: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .help-icon:hover {
+            background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+            border-color: #64748b;
+            color: #475569;
+            transform: scale(1.05);
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 41, 59, 0.95);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+            white-space: normal;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid rgba(30, 41, 59, 0.95);
+        }
+
+        .help-icon:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .control-label-with-help {
+            display: flex;
+            align-items: center;
         }
 
         @media (max-width: 1024px) {
@@ -612,7 +678,20 @@
                     </div>
 
                     <div class="control-group">
-                        <label class="control-label">イージング</label>
+                        <div class="control-label-with-help">
+                            <label class="control-label">イージング</label>
+                            <span class="help-icon">?
+                                <div class="tooltip">
+                                    <strong>イージングとは？</strong><br>
+                                    アニメーションの速度変化のパターンです<br><br>
+                                    <strong>• スムーズ:</strong> 開始と終了がゆっくり<br>
+                                    <strong>• リニア:</strong> 一定の速度<br>
+                                    <strong>• イーズイン:</strong> 開始がゆっくり<br>
+                                    <strong>• イーズアウト:</strong> 終了がゆっくり<br>
+                                    <strong>• バウンス:</strong> 弾むような動き
+                                </div>
+                            </span>
+                        </div>
                         <select class="control-select" id="easingType">
                             <option value="ease-in-out">スムーズ (ease-in-out)</option>
                             <option value="linear">リニア (linear)</option>
