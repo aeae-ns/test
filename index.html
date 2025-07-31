@@ -679,7 +679,7 @@
                         <span id="imageSize">-</span>
                     </div>
                     <div class="file-info-item">
-                        <span>推定ファイルサイズ:</span>
+                        <span>元画像ファイルサイズ:</span>
                         <span id="estimatedSize">-</span>
                     </div>
                     <div class="file-info-item">
@@ -1258,10 +1258,10 @@
             
             // 表示を更新
             const sizeText = predictedSizeMB < 1 ? 
-                `約${Math.round(predictedSizeMB * 1000)}KB` : 
-                `約${predictedSizeMB.toFixed(1)}MB`;
+                `${Math.round(predictedSizeMB * 1000)}KB（5MB以下のみ出力可）` : 
+                `${predictedSizeMB.toFixed(1)}MB（5MB以下のみ出力可）`;
                 
-            const warningText = predictedSizeMB > 5 ? ' ⚠️ 5MB超過予想' : '';
+            const warningText = predictedSizeMB > 5 ? ' ⚠️' : '';
             document.getElementById('predictedOutputSize').textContent = sizeText + warningText;
         }
 
@@ -1489,7 +1489,7 @@
             document.getElementById('imageSize').textContent = `${img.width} × ${img.height}px（元サイズ）`;
             
             const fileSizeMB = Math.round(file.size / 1024 / 1024 * 100) / 100;
-            document.getElementById('estimatedSize').textContent = `元画像: ${fileSizeMB}MB（5MB以下のみ出力可）`;
+            document.getElementById('estimatedSize').textContent = `${fileSizeMB}MB`;
             
             fileInfo.style.display = 'block';
         }
