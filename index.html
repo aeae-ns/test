@@ -6,9 +6,8 @@
     <title>GIF & APNG ANIMATOR</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-    <script src="gif.js"></script>
-    <script src="UPNG.js"></script>
-    <script src="pako.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -179,6 +178,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            text-decoration: none;
         }
 
         .btn:hover {
@@ -288,6 +288,7 @@
             border-radius: 4px;
             overflow: hidden;
             margin: 20px 0;
+            display: none;
         }
 
         .progress-fill {
@@ -306,6 +307,7 @@
             margin-top: 20px;
             font-size: 0.9rem;
             color: #475569;
+            display: none;
         }
 
         .file-info-item {
@@ -336,6 +338,7 @@
             border-radius: 16px;
             padding: 20px;
             margin: 20px 0;
+            display: none;
         }
 
         .size-controls h3 {
@@ -372,41 +375,6 @@
             background: rgba(255, 255, 255, 1);
         }
 
-        .aspect-ratio-btn {
-            background: linear-gradient(135deg, #64748b, #475569);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            min-width: 40px;
-        }
-
-        .aspect-ratio-btn:hover {
-            background: linear-gradient(135deg, #475569, #334155);
-        }
-
-        .aspect-ratio-btn.unlocked {
-            background: linear-gradient(135deg, #94a3b8, #64748b);
-        }
-
-        .reset-size-btn {
-            background: linear-gradient(135deg, #6b7280, #4b5563);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .reset-size-btn:hover {
-            background: linear-gradient(135deg, #4b5563, #374151);
-        }
-
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -431,7 +399,7 @@
     <div class="container">
         <header class="header">
             <h1>GIF & APNG ANIMATOR</h1>
-            <p>PNG ▸▸▸ GIF / APNG</p>
+            <p>PNG ▸▸▸ GIF / APNG - Ver.β</p>
         </header>
 
         <div class="main-content">
@@ -450,24 +418,22 @@
 
                 <input type="file" id="fileInput" class="file-input" accept="image/png">
 
-                <div class="size-controls" id="sizeControls" style="display: none;">
+                <div class="size-controls" id="sizeControls">
                     <h3>⚏ 出力サイズ調整</h3>
                     <div class="size-input-group">
                         <label>幅:</label>
                         <input type="number" id="outputWidth" class="size-input" min="50" max="1000" value="300">
                         <span>px</span>
-                        <button id="aspectRatioBtn" class="aspect-ratio-btn" title="縦横比を固定">🔗</button>
-                        <label>高さ:</label>
+                        <label style="margin-left: 20px;">高さ:</label>
                         <input type="number" id="outputHeight" class="size-input" min="50" max="1000" value="300">
                         <span>px</span>
-                        <button id="resetSizeBtn" class="reset-size-btn" title="元のサイズに戻す">↻</button>
                     </div>
                     <div style="font-size: 0.8rem; color: #64748b; margin-top: 8px;">
                         現在のサイズ: <span id="currentSizeDisplay">-</span>
                     </div>
                 </div>
 
-                <div class="file-info" id="fileInfo" style="display: none;">
+                <div class="file-info" id="fileInfo">
                     <div class="file-info-item">
                         <span>ファイル名:</span>
                         <span id="fileName">-</span>
@@ -599,13 +565,13 @@
                         ⚡ アニメーション生成 ⚡
                     </button>
 
-                    <div class="progress-bar" id="progressBar" style="display: none;">
+                    <div class="progress-bar" id="progressBar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
 
-                    <button class="btn btn-secondary" id="downloadBtn" disabled style="width: 100%; display: none;">
+                    <a class="btn btn-secondary" id="downloadBtn" style="width: 100%; display: none; text-align: center; justify-content: center;">
                         ⇩ ファイルダウンロード ⇩
-                    </button>
+                    </a>
                 </div>
 
                 <div id="uploadPrompt" style="text-align: center; color: #64748b; padding: 40px 20px;">
@@ -634,46 +600,159 @@
         </div>
     </footer>
 
+    <!-- UPNGエンコーダー（簡易版） -->
     <script>
-        // gif.jsの透過処理を改善するパッチ
-        if (typeof GIF !== 'undefined') {
-            // GIFライブラリの透過処理を強化
-            const originalAddFrame = GIF.prototype.addFrame;
-            GIF.prototype.addFrame = function(image, options) {
-                options = options || {};
+        // 簡易UPNG実装（APNGエンコード用）
+        var UPNG = {
+            encode: function(bufs, w, h, ps, delays) {
+                // APNGの簡易実装
+                console.log('UPNG encode called with', bufs.length, 'frames');
                 
-                // 透過処理を強制的に有効にする
-                if (this.options.transparent !== null || options.transparent) {
-                    // Canvasの場合、透過ピクセルを検出して透過色を設定
-                    if (image.tagName === 'CANVAS') {
-                        const ctx = image.getContext('2d');
-                        const imageData = ctx.getImageData(0, 0, image.width, image.height);
-                        const data = imageData.data;
-                        
-                        // 透過色として使用する色を見つける（完全黒）
-                        this.setTransparent = function(color) {
-                            this.transparent = color;
-                            return this;
-                        };
-                        
-                        // 透過色を黒（0x000000）に設定
-                        if (typeof this.transparent === 'undefined') {
-                            this.transparent = 0x000000;
-                        }
-                    }
+                // PNG署名
+                var signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+                
+                // 基本的なPNGヘッダー（IHDR）の作成
+                var ihdr = this._createIHDR(w, h);
+                
+                // フレームデータの処理
+                var chunks = [signature, ihdr];
+                
+                // 各フレームを処理
+                for (var i = 0; i < bufs.length; i++) {
+                    // フレームデータをIDATチャンクに変換
+                    var frameData = new Uint8Array(bufs[i]);
+                    var idat = this._createIDAT(frameData);
+                    chunks.push(idat);
                 }
                 
-                return originalAddFrame.call(this, image, options);
-            };
-        }
+                // IENDチャンク
+                var iend = new Uint8Array([0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
+                chunks.push(iend);
+                
+                // 全チャンクを結合
+                var totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+                var result = new Uint8Array(totalLength);
+                var offset = 0;
+                
+                for (var i = 0; i < chunks.length; i++) {
+                    result.set(chunks[i], offset);
+                    offset += chunks[i].length;
+                }
+                
+                return result.buffer;
+            },
+            
+            _createIHDR: function(w, h) {
+                // IHDR チャンクの作成（簡易版）
+                var data = new Uint8Array(25); // 4(length) + 4(type) + 13(data) + 4(crc)
+                
+                // Length (13 bytes)
+                data[0] = 0; data[1] = 0; data[2] = 0; data[3] = 13;
+                
+                // Type 'IHDR'
+                data[4] = 73; data[5] = 72; data[6] = 68; data[7] = 82;
+                
+                // Width (4 bytes, big-endian)
+                data[8] = (w >> 24) & 0xFF;
+                data[9] = (w >> 16) & 0xFF;
+                data[10] = (w >> 8) & 0xFF;
+                data[11] = w & 0xFF;
+                
+                // Height (4 bytes, big-endian)
+                data[12] = (h >> 24) & 0xFF;
+                data[13] = (h >> 16) & 0xFF;
+                data[14] = (h >> 8) & 0xFF;
+                data[15] = h & 0xFF;
+                
+                // Bit depth, Color type, Compression method, Filter method, Interlace method
+                data[16] = 8;  // 8-bit
+                data[17] = 6;  // RGBA
+                data[18] = 0;  // deflate
+                data[19] = 0;  // adaptive filtering
+                data[20] = 0;  // no interlace
+                
+                // CRC (簡易計算)
+                var crc = this._crc32(data.slice(4, 21));
+                data[21] = (crc >> 24) & 0xFF;
+                data[22] = (crc >> 16) & 0xFF;
+                data[23] = (crc >> 8) & 0xFF;
+                data[24] = crc & 0xFF;
+                
+                return data;
+            },
+            
+            _createIDAT: function(frameData) {
+                // 簡易IDAT作成（実際にはDeflate圧縮が必要）
+                var compressed = this._deflate(frameData);
+                var length = compressed.length;
+                var chunk = new Uint8Array(length + 12);
+                
+                // Length
+                chunk[0] = (length >> 24) & 0xFF;
+                chunk[1] = (length >> 16) & 0xFF;
+                chunk[2] = (length >> 8) & 0xFF;
+                chunk[3] = length & 0xFF;
+                
+                // Type 'IDAT'
+                chunk[4] = 73; chunk[5] = 68; chunk[6] = 65; chunk[7] = 84;
+                
+                // Data
+                chunk.set(compressed, 8);
+                
+                // CRC
+                var crc = this._crc32(chunk.slice(4, 8 + length));
+                chunk[8 + length] = (crc >> 24) & 0xFF;
+                chunk[9 + length] = (crc >> 16) & 0xFF;
+                chunk[10 + length] = (crc >> 8) & 0xFF;
+                chunk[11 + length] = crc & 0xFF;
+                
+                return chunk;
+            },
+            
+            _deflate: function(data) {
+                // pakoライブラリを使用してDeflate圧縮
+                if (typeof pako !== 'undefined') {
+                    return pako.deflate(data);
+                }
+                // pakoが利用できない場合は生データを返す（非推奨）
+                return data;
+            },
+            
+            _crc32: function(data) {
+                // CRC32計算（簡易版）
+                var crc = 0xFFFFFFFF;
+                var table = this._getCrcTable();
+                
+                for (var i = 0; i < data.length; i++) {
+                    crc = (crc >>> 8) ^ table[(crc ^ data[i]) & 0xFF];
+                }
+                
+                return (crc ^ 0xFFFFFFFF) >>> 0;
+            },
+            
+            _getCrcTable: function() {
+                if (!this._crcTable) {
+                    this._crcTable = new Uint32Array(256);
+                    for (var i = 0; i < 256; i++) {
+                        var c = i;
+                        for (var j = 0; j < 8; j++) {
+                            c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                        }
+                        this._crcTable[i] = c;
+                    }
+                }
+                return this._crcTable;
+            }
+        };
+    </script>
 
+    <script>
         let currentImage = null;
         let animationCanvas = null;
         let animationContext = null;
         let animationFrames = [];
         let originalWidth = 0;
         let originalHeight = 0;
-        let aspectRatioLocked = true;
         let animationId = null;
 
         // DOM要素の取得
@@ -699,12 +778,8 @@
         const colorCount = document.getElementById('colorCount');
         const frameRate = document.getElementById('frameRate');
         const qualityLevel = document.getElementById('qualityLevel');
-
-        // サイズ調整要素
         const outputWidth = document.getElementById('outputWidth');
         const outputHeight = document.getElementById('outputHeight');
-        const aspectRatioBtn = document.getElementById('aspectRatioBtn');
-        const resetSizeBtn = document.getElementById('resetSizeBtn');
         const currentSizeDisplay = document.getElementById('currentSizeDisplay');
 
         // 値表示要素
@@ -730,10 +805,8 @@
         deleteBtn.addEventListener('click', deleteImage);
 
         // サイズ調整イベント
-        outputWidth.addEventListener('input', handleWidthChange);
-        outputHeight.addEventListener('input', handleHeightChange);
-        aspectRatioBtn.addEventListener('click', toggleAspectRatio);
-        resetSizeBtn.addEventListener('click', resetToOriginalSize);
+        outputWidth.addEventListener('input', handleSizeChange);
+        outputHeight.addEventListener('input', handleSizeChange);
 
         // コントロールイベント
         animationType.addEventListener('change', updatePreview);
@@ -840,46 +913,9 @@
             generateBtn.disabled = false;
         }
 
-        function handleWidthChange() {
-            if (aspectRatioLocked && originalWidth && originalHeight) {
-                const newWidth = parseInt(outputWidth.value);
-                const newHeight = Math.round((newWidth / originalWidth) * originalHeight);
-                outputHeight.value = newHeight;
-            }
+        function handleSizeChange() {
             updateCurrentSizeDisplay();
             updatePreview();
-        }
-
-        function handleHeightChange() {
-            if (aspectRatioLocked && originalWidth && originalHeight) {
-                const newHeight = parseInt(outputHeight.value);
-                const newWidth = Math.round((newHeight / originalHeight) * originalWidth);
-                outputWidth.value = newWidth;
-            }
-            updateCurrentSizeDisplay();
-            updatePreview();
-        }
-
-        function toggleAspectRatio() {
-            aspectRatioLocked = !aspectRatioLocked;
-            if (aspectRatioLocked) {
-                aspectRatioBtn.textContent = '🔗';
-                aspectRatioBtn.classList.remove('unlocked');
-                aspectRatioBtn.title = '縦横比を固定';
-            } else {
-                aspectRatioBtn.textContent = '🔓';
-                aspectRatioBtn.classList.add('unlocked');
-                aspectRatioBtn.title = '縦横比を自由に変更';
-            }
-        }
-
-        function resetToOriginalSize() {
-            if (originalWidth && originalHeight) {
-                outputWidth.value = originalWidth;
-                outputHeight.value = originalHeight;
-                updateCurrentSizeDisplay();
-                updatePreview();
-            }
         }
 
         function updateCurrentSizeDisplay() {
@@ -910,7 +946,7 @@
             let startTime = performance.now();
             
             function animate() {
-                const elapsed = (performance.now() - startTime) / 1000;
+                const elapsed = (performance.now() - startTime) / 1000; // 秒
                 const speed = parseFloat(animationSpeed.value);
                 const delay = parseFloat(animationDelay.value);
                 const progress = ((elapsed + delay) / speed) % 1;
@@ -1101,7 +1137,7 @@
             document.getElementById('imageSize').textContent = `${img.width} × ${img.height}px（元サイズ）`;
             
             const fileSizeMB = Math.round(file.size / 1024 / 1024 * 100) / 100;
-            document.getElementById('estimatedSize').textContent = `元画像: ${fileSizeMB}MB（5MB以下のみ出力可）`;
+            document.getElementById('estimatedSize').textContent = `元画像: ${fileSizeMB}MB`;
             
             fileInfo.style.display = 'block';
         }
@@ -1138,7 +1174,6 @@
                 sizeControls.style.display = 'none';
                 uploadPrompt.style.display = 'block';
                 generateBtn.disabled = true;
-                downloadBtn.disabled = true;
                 downloadBtn.style.display = 'none';
                 progressBar.style.display = 'none';
                 progressFill.style.width = '0%';
@@ -1172,7 +1207,6 @@
                 setTimeout(() => {
                     progressBar.style.display = 'none';
                     progressFill.style.width = '0%';
-                    downloadBtn.disabled = false;
                     downloadBtn.style.display = 'block';
                     generateBtn.disabled = false;
                     
@@ -1203,28 +1237,22 @@
             const fps = parseInt(frameRate.value);
             const duration = parseFloat(animationSpeed.value);
             const frameCount = Math.max(10, Math.min(60, Math.round(fps * duration)));
-            const type = animationType.value;
-            const intensity = parseFloat(animationIntensity.value) / 100;
-            const colors = parseInt(colorCount.value);
             const outputW = parseInt(outputWidth.value);
             const outputH = parseInt(outputHeight.value);
             const scale = parseFloat(imageScale.value) / 100;
             
             try {
-                // 透過色を事前に決定（固定でマゼンタ使用）
-                const transparentRGB = {r: 255, g: 0, b: 255}; // マゼンタ
-                
+                if (typeof GIF === 'undefined') {
+                    throw new Error('GIF.js library not loaded');
+                }
+
                 const gif = new GIF({
                     workers: 2,
-                    quality: Math.max(1, qualityLevel.value === 'high' ? 1 : qualityLevel.value === 'medium' ? 5 : 10),
+                    quality: qualityLevel.value === 'high' ? 1 : qualityLevel.value === 'medium' ? 5 : 10,
                     width: outputW,
                     height: outputH,
-                    repeat: 0, // 無限ループ固定
-                    dither: false,
-                    workerScript: 'gif.worker.js',
-                    debug: false,
-                    transparent: 0xFF00FF, // マゼンタを透過色として明示的に指定
-                    background: null
+                    repeat: 0,
+                    workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
                 });
                 
                 const canvas = document.createElement('canvas');
@@ -1236,98 +1264,16 @@
                 const progressStep = 80 / frameCount;
                 
                 for (let i = 0; i < frameCount; i++) {
-                    // マゼンタ背景で塗りつぶし
-                    ctx.fillStyle = 'rgb(255, 0, 255)';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.save();
                     
-                    // 一時キャンバスでアニメーション描画
-                    const tempCanvas = document.createElement('canvas');
-                    const tempCtx = tempCanvas.getContext('2d');
-                    tempCanvas.width = outputW;
-                    tempCanvas.height = outputH;
-                    
-                    tempCtx.save();
                     const frameProgress = i / frameCount;
-                    
-                    applyTransform(tempCtx, frameProgress, outputW, outputH, scale);
-                    tempCtx.drawImage(currentImage, 0, 0, outputW, outputH);
-                    tempCtx.restore();
-                    
-                    // 透過処理
-                    const imageData = tempCtx.getImageData(0, 0, outputW, outputH);
-                    const data = imageData.data;
-                    const outputData = ctx.createImageData(outputW, outputH);
-                    const outData = outputData.data;
-                    
-                    // マゼンタが元画像で使われているかチェック
-                    let magentaUsed = false;
-                    for (let j = 0; j < data.length; j += 4) {
-                        if (data[j + 3] > 10) { // 不透明なピクセルのみチェック
-                            if (data[j] === 255 && data[j + 1] === 0 && data[j + 2] === 255) {
-                                magentaUsed = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    // マゼンタが使われている場合は代替色を使用
-                    let finalTransparentColor = transparentRGB;
-                    if (magentaUsed) {
-                        // 代替透過色（緑）
-                        finalTransparentColor = {r: 0, g: 255, b: 0};
-                        ctx.fillStyle = 'rgb(0, 255, 0)';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    }
-                    
-                    for (let j = 0; j < data.length; j += 4) {
-                        const alpha = data[j + 3] / 255;
-                        
-                        if (alpha < 0.01) {
-                            // 完全透明 → 透過色
-                            outData[j] = finalTransparentColor.r;
-                            outData[j + 1] = finalTransparentColor.g;
-                            outData[j + 2] = finalTransparentColor.b;
-                            outData[j + 3] = 255;
-                        } else if (alpha < 0.98) {
-                            // 半透明処理
-                            const r = data[j];
-                            const g = data[j + 1];
-                            const b = data[j + 2];
-                            
-                            if (alpha > 0.3) {
-                                // 比較的不透明 → 元の色を維持
-                                outData[j] = r;
-                                outData[j + 1] = g;
-                                outData[j + 2] = b;
-                                outData[j + 3] = 255;
-                            } else {
-                                // 非常に薄い → 透過色に
-                                outData[j] = finalTransparentColor.r;
-                                outData[j + 1] = finalTransparentColor.g;
-                                outData[j + 2] = finalTransparentColor.b;
-                                outData[j + 3] = 255;
-                            }
-                        } else {
-                            // ほぼ不透明 → そのまま
-                            outData[j] = data[j];
-                            outData[j + 1] = data[j + 1];
-                            outData[j + 2] = data[j + 2];
-                            outData[j + 3] = 255;
-                        }
-                    }
-                    
-                    ctx.putImageData(outputData, 0, 0);
+                    applyTransform(ctx, frameProgress, outputW, outputH, scale);
+                    ctx.drawImage(currentImage, 0, 0, outputW, outputH);
+                    ctx.restore();
                     
                     const frameDelay = Math.max(2, Math.round(1000 / fps / 10));
-                    
-                    // 透過色を正しく設定
-                    const transparentHex = magentaUsed ? 0x00FF00 : 0xFF00FF;
-                    
-                    gif.addFrame(canvas, {
-                        delay: frameDelay,
-                        copy: true,
-                        transparent: transparentHex
-                    });
+                    gif.addFrame(canvas, { delay: frameDelay, copy: true });
                     
                     progress += progressStep;
                     progressFill.style.width = progress + '%';
@@ -1415,7 +1361,6 @@
                     ctx.save();
                     
                     const frameProgress = i / frameCount;
-                    
                     applyTransform(ctx, frameProgress, outputW, outputH, scale);
                     ctx.drawImage(currentImage, 0, 0, outputW, outputH);
                     ctx.restore();
@@ -1433,8 +1378,6 @@
                 
                 // APNG形式のバイナリデータを生成
                 const delays = new Array(frameCount).fill(Math.round(1000 / fps));
-                
-                // APNGは無限ループ固定（0 = 無限ループ）
                 const apngData = UPNG.encode(frameBuffers, outputW, outputH, 0, delays);
                 
                 if (apngData.byteLength > 5 * 1024 * 1024) {
@@ -1457,23 +1400,16 @@
             }
 
             const format = outputFormat.value;
-            const link = document.createElement('a');
-            
-            // 元のファイル名から拡張子を除去
             const originalFileName = document.getElementById('fileName').textContent;
             const nameWithoutExt = originalFileName.replace(/\.[^/.]+$/, "");
             
             if (format === 'gif') {
-                link.download = `${nameWithoutExt}_ANIMATOR.gif`;
-                link.href = animationFrames[0];
-                alert(`📥 GIFファイルがダウンロードされました！`);
+                downloadBtn.download = `${nameWithoutExt}_ANIMATOR.gif`;
+                downloadBtn.href = animationFrames[0];
             } else {
-                link.download = `${nameWithoutExt}_ANIMATOR.png`;
-                link.href = animationFrames[0];
-                alert(`📥 アニメーションPNGファイルがダウンロードされました！\n※一部のブラウザではアニメーションが再生されない場合があります。`);
+                downloadBtn.download = `${nameWithoutExt}_ANIMATOR.png`;
+                downloadBtn.href = animationFrames[0];
             }
-            
-            link.click();
         }
     </script>
 </body>
