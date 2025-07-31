@@ -787,11 +787,11 @@
                     </div>
 
                     <div class="control-group">
-                        <label class="control-label">アニメーション速度: <span class="value-display" id="speedValue">3.0</span>秒/1周期</label>
+                        <label class="control-label">アニメーション速度: <span class="value-display" id="speedValue">0.5</span>秒/1周期</label>
                         <div class="control-slider-group">
                             <button class="slider-btn decrease" onclick="adjustSlider('animationSpeed', -0.1)">−</button>
                             <div class="range-input-wrapper">
-                                <input type="range" class="range-input" id="animationSpeed" min="0.5" max="10" step="0.1" value="3.0">
+                                <input type="range" class="range-input" id="animationSpeed" min="0.5" max="10" step="0.1" value="0.5">
                             </div>
                             <button class="slider-btn increase" onclick="adjustSlider('animationSpeed', 0.1)">+</button>
                         </div>
@@ -823,8 +823,8 @@
                     <div class="control-group">
                         <label class="control-label">イージング</label>
                         <select class="control-select" id="easingType">
+                            <option value="linear" selected>リニア (linear)</option>
                             <option value="ease-in-out">スムーズ (ease-in-out)</option>
-                            <option value="linear">リニア (linear)</option>
                             <option value="ease-in">イーズイン (ease-in)</option>
                             <option value="ease-out">イーズアウト (ease-out)</option>
                             <option value="cubic-bezier(0.68, -0.55, 0.265, 1.55)">バウンス</option>
@@ -1322,7 +1322,7 @@
             
             switch(type) {
                 case 'floating':
-                    const floatY = Math.sin(progress * Math.PI * 2) * 10 * intensity;
+                    const floatY = Math.sin(easedProgress * Math.PI * 2) * 10 * intensity;
                     ctx.translate(0, floatY);
                     break;
                     
@@ -1332,7 +1332,7 @@
                     break;
                     
                 case 'swaying':
-                    const swayAngle = Math.sin(progress * Math.PI * 2) * 0.05 * intensity;
+                    const swayAngle = Math.sin(easedProgress * Math.PI * 2) * 0.05 * intensity;
                     ctx.rotate(swayAngle);
                     break;
                     
