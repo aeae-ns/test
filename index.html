@@ -1295,22 +1295,28 @@
             const fps = parseInt(frameRate.value);
             const duration = parseFloat(animationSpeed.value);
             const frameCount = Math.max(10, Math.min(60, Math.round(fps * duration)));
+            const type = animationType.value;
+            const intensity = parseFloat(animationIntensity.value) / 100;
+            const colors = parseInt(colorCount.value);
             const outputW = parseInt(outputWidth.value);
             const outputH = parseInt(outputHeight.value);
             const scale = parseFloat(imageScale.value) / 100;
             
             try {
-                if (typeof GIF === 'undefined') {
-                    throw new Error('GIF.js library not loaded');
-                }
-
+                // 透過色を事前に決定（固定でマゼンタ使用）
+                const transparentRGB = {r: 255, g: 0, b: 255}; // マゼンタ
+                
                 const gif = new GIF({
                     workers: 2,
-                    quality: qualityLevel.value === 'high' ? 1 : qualityLevel.value === 'medium' ? 5 : 10,
+                    quality: Math.max(1, qualityLevel.value === 'high' ? 1 : qualityLevel.value === 'medium' ? 5 : 10),
                     width: outputW,
                     height: outputH,
-                    repeat: 0,
-                    workerScript: 'gif.worker.js'
+                    repeat: 0, // 無限ループ固定
+                    dither: false,
+                    workerScript: 'gif.worker.js',
+                    debug: false,
+                    transparent: 0xFF00FF, // マゼンタを透過色として明示的に指定
+                    background: null
                 });
                 
                 const canvas = document.createElement('canvas');
@@ -1322,16 +1328,98 @@
                 const progressStep = 80 / frameCount;
                 
                 for (let i = 0; i < frameCount; i++) {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.save();
+                    // マゼンタ背景で塗りつぶし
+                    ctx.fillStyle = 'rgb(255, 0, 255)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
+                    // 一時キャンバスでアニメーション描画
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCanvas.width = outputW;
+                    tempCanvas.height = outputH;
+                    
+                    tempCtx.save();
                     const frameProgress = i / frameCount;
-                    applyTransform(ctx, frameProgress, outputW, outputH, scale);
-                    ctx.drawImage(currentImage, 0, 0, outputW, outputH);
-                    ctx.restore();
+                    
+                    applyTransform(tempCtx, frameProgress, outputW, outputH, scale);
+                    tempCtx.drawImage(currentImage, 0, 0, outputW, outputH);
+                    tempCtx.restore();
+                    
+                    // 透過処理
+                    const imageData = tempCtx.getImageData(0, 0, outputW, outputH);
+                    const data = imageData.data;
+                    const outputData = ctx.createImageData(outputW, outputH);
+                    const outData = outputData.data;
+                    
+                    // マゼンタが元画像で使われているかチェック
+                    let magentaUsed = false;
+                    for (let j = 0; j < data.length; j += 4) {
+                        if (data[j + 3] > 10) { // 不透明なピクセルのみチェック
+                            if (data[j] === 255 && data[j + 1] === 0 && data[j + 2] === 255) {
+                                magentaUsed = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // マゼンタが使われている場合は代替色を使用
+                    let finalTransparentColor = transparentRGB;
+                    if (magentaUsed) {
+                        // 代替透過色（緑）
+                        finalTransparentColor = {r: 0, g: 255, b: 0};
+                        ctx.fillStyle = 'rgb(0, 255, 0)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+                    
+                    for (let j = 0; j < data.length; j += 4) {
+                        const alpha = data[j + 3] / 255;
+                        
+                        if (alpha < 0.01) {
+                            // 完全透明 → 透過色
+                            outData[j] = finalTransparentColor.r;
+                            outData[j + 1] = finalTransparentColor.g;
+                            outData[j + 2] = finalTransparentColor.b;
+                            outData[j + 3] = 255;
+                        } else if (alpha < 0.98) {
+                            // 半透明処理
+                            const r = data[j];
+                            const g = data[j + 1];
+                            const b = data[j + 2];
+                            
+                            if (alpha > 0.3) {
+                                // 比較的不透明 → 元の色を維持
+                                outData[j] = r;
+                                outData[j + 1] = g;
+                                outData[j + 2] = b;
+                                outData[j + 3] = 255;
+                            } else {
+                                // 非常に薄い → 透過色に
+                                outData[j] = finalTransparentColor.r;
+                                outData[j + 1] = finalTransparentColor.g;
+                                outData[j + 2] = finalTransparentColor.b;
+                                outData[j + 3] = 255;
+                            }
+                        } else {
+                            // ほぼ不透明 → そのまま
+                            outData[j] = data[j];
+                            outData[j + 1] = data[j + 1];
+                            outData[j + 2] = data[j + 2];
+                            outData[j + 3] = 255;
+                        }
+                    }
+                    
+                    ctx.putImageData(outputData, 0, 0);
                     
                     const frameDelay = Math.max(2, Math.round(1000 / fps / 10));
-                    gif.addFrame(canvas, { delay: frameDelay, copy: true });
+                    
+                    // 透過色を正しく設定
+                    const transparentHex = magentaUsed ? 0x00FF00 : 0xFF00FF;
+                    
+                    gif.addFrame(canvas, {
+                        delay: frameDelay,
+                        copy: true,
+                        transparent: transparentHex
+                    });
                     
                     progress += progressStep;
                     progressFill.style.width = progress + '%';
