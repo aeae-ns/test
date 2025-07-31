@@ -531,20 +531,18 @@
             transition: all 0.2s ease;
             position: relative;
             vertical-align: middle;
+            transform: translateY(-2px);
         }
 
         .help-icon:hover {
             background: linear-gradient(135deg, #cbd5e1, #94a3b8);
             border-color: #64748b;
             color: #475569;
-            transform: scale(1.05);
+            transform: translateY(-2px) scale(1.05);
         }
 
         .tooltip {
-            position: absolute;
-            bottom: 28px;
-            left: 50%;
-            transform: translateX(-50%);
+            position: fixed;
             background: rgba(255, 255, 255, 0.98);
             color: #1e293b;
             border: 1px solid #cbd5e1;
@@ -552,7 +550,6 @@
             border-radius: 12px;
             font-size: 0.85rem;
             line-height: 1.6;
-            white-space: nowrap;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
@@ -560,21 +557,12 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
             backdrop-filter: blur(20px);
             max-width: 320px;
-            white-space: normal;
             text-align: left;
+            pointer-events: none;
         }
 
         .tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-top: 8px solid rgba(255, 255, 255, 0.98);
+            display: none;
         }
 
         .help-icon:hover .tooltip {
@@ -693,6 +681,10 @@
                     <div class="file-info-item">
                         <span>推定ファイルサイズ:</span>
                         <span id="estimatedSize">-</span>
+                    </div>
+                    <div class="file-info-item">
+                        <span>予測出力サイズ:</span>
+                        <span id="predictedOutputSize">-</span>
                     </div>
                     <div class="file-tips">
                         <div class="tips-icon">💡</div>
@@ -1012,10 +1004,11 @@
         resetSizeBtn.addEventListener('click', resetToOriginalSize);
 
         // コントロールイベント
-        animationType.addEventListener('change', updatePreview);
+        animationType.addEventListener('change', () => { updatePreview(); updatePredictedOutputSize(); });
         animationSpeed.addEventListener('input', () => {
             speedValue.textContent = animationSpeed.value;
             updatePreview();
+            updatePredictedOutputSize();
         });
         animationIntensity.addEventListener('input', () => {
             intensityValue.textContent = animationIntensity.value;
@@ -1032,6 +1025,50 @@
         imageScale.addEventListener('input', () => {
             scaleValue.textContent = imageScale.value;
             updatePreviewScale();
+        });
+        frameRate.addEventListener('change', updatePredictedOutputSize);
+        qualityLevel.addEventListener('change', updatePredictedOutputSize);
+        outputFormat.addEventListener('change', updatePredictedOutputSize);
+
+        // ツールチップの位置調整
+        function positionTooltip(helpIcon) {
+            const tooltip = helpIcon.querySelector('.tooltip');
+            if (!tooltip) return;
+            
+            const rect = helpIcon.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
+            
+            // 基本位置をマウスカーソルの近くに設定
+            let top = rect.top - tooltipRect.height - 10;
+            let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+            
+            // 画面上端からはみ出る場合は下に表示
+            if (top < 10) {
+                top = rect.bottom + 10;
+            }
+            
+            // 画面左端からはみ出る場合
+            if (left < 10) {
+                left = 10;
+            }
+            
+            // 画面右端からはみ出る場合
+            if (left + tooltipRect.width > viewportWidth - 10) {
+                left = viewportWidth - tooltipRect.width - 10;
+            }
+            
+            tooltip.style.top = top + 'px';
+            tooltip.style.left = left + 'px';
+        }
+
+        // ヘルプアイコンのイベント設定
+        document.addEventListener('DOMContentLoaded', function() {
+            const helpIcons = document.querySelectorAll('.help-icon');
+            helpIcons.forEach(icon => {
+                icon.addEventListener('mouseenter', () => positionTooltip(icon));
+            });
         });
 
         function handleDragOver(e) {
@@ -1114,6 +1151,7 @@
             sizeControls.style.display = 'block';
             uploadPrompt.style.display = 'none';
             generateBtn.disabled = false;
+            updatePredictedOutputSize();
         }
 
         function handleWidthChange() {
@@ -1124,6 +1162,7 @@
             }
             updateCurrentSizeDisplay();
             updatePreview();
+            updatePredictedOutputSize();
         }
 
         function handleHeightChange() {
@@ -1134,6 +1173,7 @@
             }
             updateCurrentSizeDisplay();
             updatePreview();
+            updatePredictedOutputSize();
         }
 
         function toggleAspectRatio() {
@@ -1185,6 +1225,44 @@
             // inputイベントを手動で発火させる
             const event = new Event('input', { bubbles: true });
             slider.dispatchEvent(event);
+        }
+
+        // 予測出力サイズを計算・更新する関数
+        function updatePredictedOutputSize() {
+            if (!currentImage) {
+                document.getElementById('predictedOutputSize').textContent = '-';
+                return;
+            }
+            
+            const width = parseInt(outputWidth.value) || originalWidth;
+            const height = parseInt(outputHeight.value) || originalHeight;
+            const fps = parseInt(frameRate.value);
+            const duration = parseFloat(animationSpeed.value);
+            const frameCount = Math.max(10, Math.min(60, Math.round(fps * duration)));
+            const format = outputFormat.value;
+            
+            // おおよその予測計算
+            let predictedSizeMB;
+            
+            if (format === 'gif') {
+                // GIF: フレーム数 × 画像サイズ × 圧縮率
+                const pixelCount = width * height;
+                const compressionRatio = qualityLevel.value === 'high' ? 0.3 : qualityLevel.value === 'medium' ? 0.2 : 0.15;
+                predictedSizeMB = (pixelCount * frameCount * 3 * compressionRatio) / (1024 * 1024);
+            } else {
+                // APNG: より効率的な圧縮
+                const pixelCount = width * height;
+                const compressionRatio = 0.25;
+                predictedSizeMB = (pixelCount * frameCount * 4 * compressionRatio) / (1024 * 1024);
+            }
+            
+            // 表示を更新
+            const sizeText = predictedSizeMB < 1 ? 
+                `約${Math.round(predictedSizeMB * 1000)}KB` : 
+                `約${predictedSizeMB.toFixed(1)}MB`;
+                
+            const warningText = predictedSizeMB > 5 ? ' ⚠️ 5MB超過予想' : '';
+            document.getElementById('predictedOutputSize').textContent = sizeText + warningText;
         }
 
         function handleSizeChange() {
