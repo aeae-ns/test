@@ -110,59 +110,27 @@
             font-weight: 600;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             gap: 12px;
         }
 
-        .section-title-left {
+        .preview-container {
+            min-height: 400px;
+            background: 
+                linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
+                linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
+                linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            border: 2px dashed #ced4da;
+            border-radius: 16px;
             display: flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        .preview-toggle {
-            opacity: 0.6;
-            transition: opacity 0.2s ease;
-        }
-
-        .preview-toggle:hover {
-            opacity: 1;
-        }
-
-        .preview-toggle-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
             cursor: pointer;
-            font-size: 0.75rem;
-            color: #64748b;
-            user-select: none;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 4px 8px;
-            border-radius: 6px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(203, 213, 225, 0.3);
-        }
-
-        .preview-toggle-checkbox {
-            width: 12px;
-            height: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.9);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .preview-toggle-checkbox:checked {
-            background: linear-gradient(135deg, #94a3b8, #64748b);
-            border-color: #64748b;
-        }
-
-        .preview-toggle-text {
-            font-weight: 400;
-            white-space: nowrap;
         }
 
         .preview-container:hover {
@@ -671,16 +639,8 @@
         <div class="main-content">
             <div class="preview-section">
                 <h2 class="section-title">
-                    <div class="section-title-left">
-                        <span>✦</span>
-                        Preview
-                    </div>
-                    <div class="preview-toggle" id="previewToggle" style="display: none;">
-                        <label class="preview-toggle-label">
-                            <input type="checkbox" id="fitToScreen" class="preview-toggle-checkbox">
-                            <span class="preview-toggle-text">画面内に収める</span>
-                        </label>
-                    </div>
+                    <span>✦</span>
+                    Preview
                 </h2>
                 
                 <div class="preview-container" id="previewContainer">
@@ -975,7 +935,6 @@
         const resetSizeBtn = document.getElementById('resetSizeBtn');
         const currentSizeDisplay = document.getElementById('currentSizeDisplay');
         const fitToScreenCheckbox = document.getElementById('fitToScreen');
-        const previewToggle = document.getElementById('previewToggle');
 
         // 値表示要素
         const speedValue = document.getElementById('speedValue');
@@ -1103,10 +1062,6 @@
             animationCanvas.style.maxHeight = '100%';
             
             previewContainer.appendChild(animationCanvas);
-            
-            // プレビュートグルを表示
-            previewToggle.style.display = 'block';
-            
             animationContext = animationCanvas.getContext('2d');
             
             // 初期表示でフィット設定を適用
@@ -1120,7 +1075,13 @@
             uploadPrompt.style.display = 'none';
             generateBtn.disabled = false;
             
-            // デフォルトはオフのまま（自動設定を削除）
+            // 大きな画像の場合はデフォルトでフィットモードをONに
+            if (originalWidth > 800 || originalHeight > 600) {
+                fitToScreenCheckbox.checked = true;
+                fitToScreen = true;
+                updatePreviewDisplay();
+            }
+            
             updatePredictedOutputSize();
         }
 
@@ -1516,9 +1477,6 @@
                         <p>PNGファイルをドラッグ&ドロップ<br>またはクリックしてアップロード</p>
                     </div>
                 `;
-                
-                // プレビュートグルを非表示
-                previewToggle.style.display = 'none';
                 
                 // UI要素を初期状態に戻す
                 fileInfo.style.display = 'none';
