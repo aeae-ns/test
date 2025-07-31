@@ -250,39 +250,53 @@
         }
 
         .slider-btn {
-            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-            border: 1px solid #cbd5e1;
-            color: #475569;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 1px solid #d1d5db;
+            color: #6b7280;
             width: 32px;
             height: 32px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 1rem;
+            font-weight: 500;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             user-select: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .slider-btn:hover {
-            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border-color: #9ca3af;
+            color: #374151;
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .slider-btn:active {
             transform: translateY(0);
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
         }
 
         .slider-btn.decrease {
-            color: #dc2626;
+            color: #64748b;
+        }
+
+        .slider-btn.decrease:hover {
+            color: #475569;
+            border-color: #64748b;
         }
 
         .slider-btn.increase {
-            color: #059669;
+            color: #64748b;
+        }
+
+        .slider-btn.increase:hover {
+            color: #475569;
+            border-color: #64748b;
         }
 
         .range-input-wrapper {
